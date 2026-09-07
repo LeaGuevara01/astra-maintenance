@@ -10,13 +10,14 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U astra -d astra"]
+      test: ["CMD-SHELL", "pg_isready -U astra -d ${DB_NAME}"]
       interval: 3s
       timeout: 3s
       retries: 25
     restart: unless-stopped
   api:
     image: ${API_IMAGE}
+    pull_policy: never
     environment:
       DATABASE_URL: postgresql://astra:${DB_PASSWORD}@db:5432/${DB_NAME}
       APP_ORIGIN: ${APP_ORIGIN}
@@ -43,6 +44,7 @@ services:
     restart: unless-stopped
   web:
     image: ${WEB_IMAGE}
+    pull_policy: never
     ports:
       - "${BIND_ADDRESS}:${WEB_PORT}:${WEB_CONTAINER_PORT}"
     volumes:

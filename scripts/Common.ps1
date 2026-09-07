@@ -11,6 +11,16 @@ function New-AstraSecret {
  [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
  [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+','-').Replace('/','_')
 }
+function Get-AstraAvailablePort {
+ param([int]$Preferred,[switch]$Fixed)
+ for($candidate=$Preferred;$candidate -lt [Math]::Min(65535,$Preferred+100);$candidate++){
+  $listener=New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback,$candidate)
+  try {$listener.Start();return $candidate}
+  catch {if($Fixed){throw "Port $Preferred is occupied; select an explicit free port before preparing this environment."}}
+  finally {$listener.Stop()}
+ }
+ throw 'No free port available in the requested range'
+}
 function Get-AstraContext {
  param([ValidateSet('dev','test','staging','prod')][string]$Environment='dev',[switch]$Create)
  $dir=Join-Path $script:AstraRoot ".runtime/$Environment"
@@ -23,7 +33,11 @@ function Get-AstraContext {
   $base=45000+([BitConverter]::ToUInt16($hash,0)%1000)*4
   $offset=@{dev=0;test=1;staging=2;prod=3}[$Environment]
   $webPort=if($Environment -eq 'staging'){4380}elseif($Environment -eq 'prod'){4382}else{$base+$offset}
+  $webPort=Get-AstraAvailablePort $webPort -Fixed:($Environment -in @('staging','prod'))
+  $dbPort=Get-AstraAvailablePort ($base+$offset+5000)
+  $apiPort=Get-AstraAvailablePort ($base+$offset+10000)
   $cfg=[ordered]@{schemaVersion=1;environment=$Environment;project="astra-$Environment-$key";dbPort=($base+$offset+5000);webPort=$webPort;apiPort=($base+$offset+10000);dbName=$(if($Environment -eq 'test'){'astra_test'}else{'astra'});dbPassword=(New-AstraSecret);adminPassword=(New-AstraSecret);techPassword=(New-AstraSecret);viewerPassword=(New-AstraSecret);origin="http://localhost:$webPort";bindAddress='127.0.0.1';webContainerPort=8080;cookieSecure='false';apiImage='astra-api:unbuilt';webImage='astra-web:unbuilt';commit='unknown'}
+  $cfg.dbPort=$dbPort;$cfg.apiPort=$apiPort
   $cfg | ConvertTo-Json | Set-Content -LiteralPath $path -Encoding utf8
  }
  $cfg=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
@@ -66,7 +80,18 @@ $site {
 }
 function Invoke-AstraCompose {
  param($Context,[string[]]$Arguments)
- Invoke-Checked docker (@('compose','--env-file',$Context.envPath,'-p',$Context.project,'-f',(Join-Path $script:AstraRoot 'compose.yaml'))+$Arguments)
+ # Compose process environment overrides --env-file; never inherit another ASTRA environment.
+ $saved=@{}
+ try {
+  foreach($line in (Get-Content -LiteralPath $Context.envPath)){
+   if($line -match '^([A-Z_][A-Z0-9_]*)='){
+    $name=$Matches[1];$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')
+    [Environment]::SetEnvironmentVariable($name,$null,'Process')
+   }
+  }
+  $composePath=if($Context.PSObject.Properties.Name -contains 'composePath'){$Context.composePath}else{Join-Path $script:AstraRoot 'compose.yaml'}
+  Invoke-Checked docker (@('compose','--env-file',$Context.envPath,'-p',$Context.project,'-f',$composePath)+$Arguments)
+ } finally {foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}}
 }
 function Set-AstraLocalEnvironment {
  param($Context)
@@ -108,4 +133,65 @@ function Test-AstraHttp {
   }catch{$last=$_;Start-Sleep -Seconds 1}
  }
  throw "Health/version failed: $last"
+}
+
+function Write-AstraJson {
+ param([string]$Path,$Value)
+ $temporary=$Path+'.'+[Guid]::NewGuid().ToString('N')+'.tmp'
+ $Value | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $temporary -Encoding utf8
+ if(Test-Path -LiteralPath $Path){[IO.File]::Replace($temporary,$Path,$null)}else{[IO.File]::Move($temporary,$Path)}
+}
+function Get-AstraImageId {
+ param([string]$Image)
+ $value=& docker image inspect $Image --format '{{.Id}}'
+ if($LASTEXITCODE -ne 0 -or !$value){throw 'Required image is unavailable'}
+ return $value.Trim()
+}
+function Test-AstraReleaseImages {
+ param($Release)
+ foreach($kind in @('api','web')){
+  $expected=$Release.("${kind}Digest")
+  if($expected -notmatch '^sha256:[a-f0-9]{64}$' -or (Get-AstraImageId $expected) -ne $expected){throw 'Recorded release image unavailable'}
+ }
+}
+function Set-AstraRelease {
+ param($Context,$Release)
+ Test-AstraReleaseImages $Release
+ $Context.apiImage=$Release.apiDigest;$Context.webImage=$Release.webDigest;$Context.commit=$Release.commit
+ Save-AstraContext $Context
+ Invoke-AstraCompose $Context @('up','-d','--wait','api','web')
+ Test-AstraHttp $Context $Release.commit | Out-Null
+}
+function Get-AstraDatabaseFingerprint {
+ param($Context)
+ $sql=Get-Content (Join-Path $script:AstraRoot 'scripts/Database-Fingerprint.sql') -Raw
+ $json=Invoke-AstraCompose $Context @('exec','-T','db','psql','-U','astra','-d',$Context.dbName,'-X','-qAt','-v','ON_ERROR_STOP=1','-c',$sql)
+ return ($json -join '') | ConvertFrom-Json
+}
+function New-AstraBackup {
+ param($Context)
+ # Caller holds the environment lock. This helper must not reacquire it.
+ $backupDir=Join-Path $script:AstraRoot ".runtime/backups/$($Context.environment)"
+ New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+ $name=(Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss-fff')+'.dump'
+ $dest=Join-Path $backupDir $name
+ $before=Get-AstraDatabaseFingerprint $Context
+ try {
+  Invoke-AstraCompose $Context @('exec','-T','db','pg_dump','-U','astra','-d',$Context.dbName,'-Fc','-f',"/tmp/$name") | Out-Null
+  Invoke-AstraCompose $Context @('cp',"db:/tmp/$name",$dest) | Out-Null
+ } finally {Invoke-AstraCompose $Context @('exec','-T','db','rm','-f',"/tmp/$name") | Out-Null}
+ if((Get-Item -LiteralPath $dest).Length -lt 100){throw 'Backup is unexpectedly small'}
+ $after=Get-AstraDatabaseFingerprint $Context
+ $stable=($before | ConvertTo-Json -Depth 10 -Compress) -eq ($after | ConvertTo-Json -Depth 10 -Compress)
+ $sha=(Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash
+ $metadata=@{file=$name;sha256=$sha;sourceProject=$Context.project;environment=$Context.environment;database=$Context.dbName;createdAt=(Get-Date).ToUniversalTime().ToString('o');stableFingerprint=$stable;fingerprint=$(if($stable){$before}else{$null})}
+ Write-AstraJson "$dest.json" $metadata
+ $old=Get-ChildItem -LiteralPath $backupDir -Filter '*.dump' | Where-Object {$_.Name -match '^\d{8}-\d{6}-\d{3}\.dump$'} | Sort-Object Name -Descending | Select-Object -Skip 7
+ foreach($item in $old){
+  if($item.LastWriteTime -lt (Get-Date).AddDays(-7)){
+   Remove-Item -LiteralPath $item.FullName
+   if(Test-Path -LiteralPath "$($item.FullName).json"){Remove-Item -LiteralPath "$($item.FullName).json"}
+  }
+ }
+ return $dest
 }
