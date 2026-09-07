@@ -1,0 +1,60 @@
+name: Pilot checks
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'chore/**']
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+        env:
+          POSTGRES_DB: astra_test
+          POSTGRES_USER: astra
+          POSTGRES_PASSWORD: ci-only-ephemeral
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U astra -d astra_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://astra:ci-only-ephemeral@localhost:5432/astra_test
+      TEST_DATABASE_URL: postgresql://astra:ci-only-ephemeral@localhost:5432/astra_test
+      APP_ORIGIN: http://localhost:4380
+      NODE_ENV: test
+      APP_ENVIRONMENT: test
+      COOKIE_SECURE: 'false'
+      SEED_ADMIN_PASSWORD: test-admin-password-only
+      SEED_TECH_PASSWORD: test-technician-password-only
+      SEED_VIEWER_PASSWORD: test-viewer-password-only
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.20.0
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:migrate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          NODE_ENV: production
+      - run: npm audit --audit-level=high
+  windows-scripts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - shell: pwsh
+        run: |
+          Get-ChildItem scripts/*.ps1 | ForEach-Object {
+            $tokens=$null; $errors=$null
+            [Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors) | Out-Null
+            if($errors.Count){throw ($errors | Out-String)}
+          }

@@ -1,0 +1,12 @@
+version = 1
+name = "ASTRA Windows"
+[setup]
+script = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare.ps1"
+[[actions]]
+name = "Run"
+icon = "run"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Dev.ps1"
+[[actions]]
+name = "Verify"
+icon = "test"
+command = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Verify.ps1"

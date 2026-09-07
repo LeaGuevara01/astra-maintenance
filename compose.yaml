@@ -1,0 +1,59 @@
+services:
+  db:
+    image: ${POSTGRES_IMAGE}
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: astra
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:${DB_PORT}:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astra -d astra"]
+      interval: 3s
+      timeout: 3s
+      retries: 25
+    restart: unless-stopped
+  api:
+    image: ${API_IMAGE}
+    environment:
+      DATABASE_URL: postgresql://astra:${DB_PASSWORD}@db:5432/${DB_NAME}
+      APP_ORIGIN: ${APP_ORIGIN}
+      APP_ENVIRONMENT: ${ASTRA_ENV}
+      APP_VERSION: 0.1.0
+      GIT_COMMIT: ${GIT_COMMIT}
+      COOKIE_SECURE: ${COOKIE_SECURE}
+      NODE_ENV: production
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_TECH_PASSWORD: ${SEED_TECH_PASSWORD}
+      SEED_VIEWER_PASSWORD: ${SEED_VIEWER_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD","node","-e","fetch('http://127.0.0.1:4301/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  web:
+    image: ${WEB_IMAGE}
+    ports:
+      - "${BIND_ADDRESS}:${WEB_PORT}:${WEB_CONTAINER_PORT}"
+    volumes:
+      - ${CADDYFILE}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  database:
+  caddy_data:
+  caddy_config:
