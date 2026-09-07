@@ -4,21 +4,22 @@ Los scripts de despliegue están escritos. Antes de operar datos reales debe com
 
 | Script | Función | Verificación actual |
 |---|---|---|
-| Prepare.ps1 | npm ci, credenciales locales, PostgreSQL por entorno, migración y seed | Reasigna puertos dev/test ocupados, persiste la elección y serializa por lock; falta ciclo dev completo |
-| Start-Dev.ps1 | API y frontend nativos con puertos propios | Revalida puertos dev antes de arrancar y usa lock del entorno; falta ensayo de circuito completo |
-| Verify.ps1 | base de test aislada, migraciones, typecheck, tests, build | Ejecutado; pasó |
-| Deploy-Staging.ps1 | lock, commit limpio, build, migración, seed opcional, health/version | Escrito; no ejecutado |
-| Backup.ps1 | pg_dump binario, SHA256, retención | Escrito; no ejecutado |
-| Restore-Check.ps1 | restauración de ensayo | Ya usa proyecto Compose y volumen independientes; falta ensayo con backup real |
-| Rollback-Staging.ps1 | imagen anterior con digest y datos preservados | Escrito; requiere dos releases de staging para ensayo |
-| New-Worktree.ps1 | rama y directorio independientes | Crea además contextos dev/test aislados con puertos persistidos; validado con worktree temporal |
+| Prepare.ps1 | npm ci, credenciales locales, PostgreSQL por entorno, migración y seed | Ejecutado en dos worktrees temporales; reasignó puertos ocupados y persistió contextos aislados |
+| Start-Dev.ps1 | API y frontend nativos con puertos propios | Ejecutado en dos worktrees temporales en paralelo; ambos expusieron web y API sobre puertos distintos |
+| Verify.ps1 | base de test aislada, migraciones, typecheck, tests, build | Ejecutado; pasó sobre el commit limpio `2ef666a` |
+| Deploy-Staging.ps1 | lock, commit limpio, build, migración, seed opcional, health/version | Ejecutado; staging sintético activo en `http://localhost:4380` con commit `2ef666a` |
+| Backup.ps1 | pg_dump binario, SHA256, retención | Ejecutado; dump SHA-256 verificado y retención local conservada |
+| Restore-Check.ps1 | restauración de ensayo | Ejecutado con backup real; restauró en proyecto Compose y volumen independientes y rechazó un dump corrupto por checksum |
+| Rollback-Staging.ps1 | imagen anterior con digest y datos preservados | Ejecutado entre `32ba952` y `2ef666a`; preservó el asset sonda `ASTRA-RB-031857` |
+| New-Worktree.ps1 | rama y directorio independientes | Crea además contextos dev/test aislados con puertos persistidos; validado con dos worktrees completos en paralelo |
 | Enable-LanStaging.ps1 | HTTPS con CA interna y cookie Secure | Escrito; no ejecutado |
 | Register-Backup.ps1 | tarea diaria a las 02:00 | No registrada todavía |
 
 ## Inicio de la próxima sesión
-Usar el directorio del repositorio piloto, comprobar git status y leer HANDOFF.md. Ejecutar Verify.ps1 para generar evidencia asociada al commit limpio antes del despliegue.
+Usar el directorio del repositorio piloto, comprobar git status y leer HANDOFF.md. Si no hay nuevos cambios, el siguiente foco natural es ASTRA-005: E2E real de tres roles y revisión visual de PDF A6/A4.
 
 New-Worktree.ps1 ahora deja preparados los contextos locales dev/test del nuevo worktree. Prepare.ps1, Verify.ps1 y Start-Dev.ps1 revalidan puertos mutables antes de escribir .runtime para evitar colisiones al reutilizar un entorno ya preparado.
+El ensayo paralelo de worktrees dejó dos señales útiles: el puerto `db` de `dev` puede reasignarse si el preferido ya fue ocupado por otro entorno del mismo checkout, y esa reasignación queda persistida en `.runtime/dev/config.json` para el siguiente arranque.
 
 ## Secretos
 Get-AstraContext genera secretos distintos por entorno y los guarda en .runtime/<entorno>/config.json y .env. El seed exige contraseñas de 12 o más caracteres y preserva usuarios/datos existentes.

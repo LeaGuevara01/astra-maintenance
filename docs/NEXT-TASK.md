@@ -1,41 +1,39 @@
-# ASTRA-004 — Operaciones reproducibles y recuperación aislada
+# ASTRA-005 — E2E de tres roles y revisión visual PDF
 
-Estado: implementación avanzada; ejecución operativa pendiente. Responsable: integrador; revisión independiente acotada permitida.
+Estado: listo para ejecución sobre staging local. Responsable: integrador; apoyo acotado permitido.
 
 ## Objetivo
-Cerrar la brecha entre un piloto que pasa sus pruebas y un staging recuperable, identificado por commit e imágenes.
+Validar el circuito visible completo del piloto sobre staging sintético: login por rol, navegación crítica, generación/ejecución/cierre de OT y revisión visual real de tarjetas A6/A4.
 
 ## Alcance
-scripts/Common.ps1, Verify.ps1, Deploy-Staging.ps1, Backup.ps1, Restore-Check.ps1, Rollback-Staging.ps1; compose.yaml y Dockerfile cuando la prueba lo requiera. Mantener API y esquema salvo defecto demostrado. Sin merge de main ni producción.
+Staging local en `http://localhost:4380`, navegador real, verificación de rutas clave en UI/API, exportación de tarjeta HTML/PDF desde una OT cerrada y actualización de HANDOFF/VERIFICATION con evidencia. Sin merge de main ni producción.
 
 ## Fuentes y restricciones
-Leer AGENTS, OPERATIONS, HANDOFF y VERIFICATION. Usar exclusivamente datos sintéticos. Conservar originales, secretos y volúmenes actuales. No debilitar las guardas de base de test ni saltar verificaciones de commit.
+Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exclusivamente staging sintético y credenciales del `.runtime/staging/config.json`. No imprimir secretos ni copiarlos al diff. No tocar datos reales ni SPARE. Si aparece un defecto funcional, corregirlo en el slice mínimo necesario y volver a validar.
 
-## Defectos y riesgos concretos para resolver
-1. Confirmar con ensayo que Restore-Check en proyecto Compose y volumen independientes recupera datos sintéticos concretos. No apuntar comandos de restauración al proyecto activo.
-2. Deploy-Staging solo intenta rollback en el bloque de verificación HTTP; revisar fallos anteriores de migración, compose up y escritura de configuración. Preservar referencia recuperable y reportar con claridad cuando una migración exige intervención.
-3. Verificar que despliegue, backup y recuperación no se pisan. Evitar locks anidados que bloqueen la copia llamada desde un despliegue.
-4. Verificar npm ci en imagen limpia, build de producción, health, identificación de commit e imagen y scripts en Windows PowerShell.
-5. Verificar en dos worktrees completos que la preasignación y revalidación de puertos persisten una elección libre y no colisionan entre entornos.
-6. La instalación reproducible ya tiene lockfile: preservar esa fijación al resolver compatibilidad.
+## Preparación ya disponible
+- Staging local activo en `http://localhost:4380` con commit `2ef666ae0721208501d5664a0ce5e8d7f37d7da0`.
+- Verify, backup/restore aislado, rollback con preservación de datos y dos worktrees completos en paralelo ya quedaron ensayados.
+- `tools/verify-staging.mjs` existe como helper local no versionado; usarlo sólo si aporta evidencia y sin incorporarlo por defecto al commit.
+
+## Riesgos a resolver
+1. Comprobar que ADMIN, TECHNICIAN y VIEWER puedan completar su recorrido previsto sin errores de sesión, CSRF, permisos o estado inconsistente.
+2. Confirmar que el circuito visible `activo → plan → OT → reserva/consumo → checkpoints → cierre` se corresponde con la API y deja una OT cerrada utilizable para exportación.
+3. Revisar que las tarjetas A6 y A4 de staging no recorten texto, mantengan legibilidad y sigan exponiendo QR/estado correcto.
+4. Si aparece una desviación entre UI, API y documento exportado, registrarla con evidencia concreta antes de ampliar dominio.
 
 ## Aceptación
-- Verify aprueba sobre el SHA limpio que se desplegará.
-- Staging sirve interfaz y API; /health/ready responde y /api/v1/version coincide con SHA.
-- Backup binario tiene hash verificado y retención comprobada.
-- Restauración ocurre en volumen nuevo y recupera registros sintéticos concretos, no solamente un conteo de tablas. La base original no cambia.
-- Un backup corrupto falla antes de restaurar.
-- Dos despliegues simultáneos del mismo entorno no se ejecutan juntos.
-- Dos worktrees no comparten PostgreSQL, credenciales ni puertos.
-- Rollback vuelve a la imagen registrada y conserva una intervención generada entre ambas versiones.
-- Fallo de despliegue conserva evidencia y un procedimiento de recuperación utilizable.
-- No hay secretos ni originales en el diff, logs o PR.
+- ADMIN inicia sesión, navega, genera OT y verifica datos clave de staging.
+- TECHNICIAN reserva/consume materiales, completa tareas/checkpoints y deja una OT cerrada.
+- VIEWER entra en modo lectura y no puede ejecutar escrituras administrativas u operativas.
+- `/api/v1/version` y la UI revisada corresponden al mismo staging local.
+- Se exportan y revisan al menos una tarjeta A6 y una A4 desde staging; la A4 conserva cuatro tarjetas legibles.
+- La evidencia final registra URL, SHA, OT utilizada, roles ensayados, resultado y defectos abiertos si existieran.
 
 ## Evidencia de salida
-Commit limpio, comandos y resultados, proyectos/volúmenes distintos sin contraseñas, hashes de backup e imágenes, prueba de datos conservados y URL de staging. Actualizar HANDOFF y OPERATIONS con lo ejecutado y lo pendiente.
+Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION.
 
 ## Tareas siguientes
-ASTRA-005: E2E de tres roles y circuito completo, revisión visual A6/A4.
 ASTRA-006: normalizar inventario local y estado de extracción parcial, OCR y cola de revisión técnica.
 ASTRA-007: contratos de procedencia e importación dry-run de candidatos; no cargar cantidades históricas como stock.
 ASTRA-008: validar cinco skills en una sesión nueva y extraer plugin astra-engineering después de demostrar el piloto.
