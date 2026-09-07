@@ -139,7 +139,12 @@ function Write-AstraJson {
  param([string]$Path,$Value)
  $temporary=$Path+'.'+[Guid]::NewGuid().ToString('N')+'.tmp'
  $Value | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $temporary -Encoding utf8
- if(Test-Path -LiteralPath $Path){[IO.File]::Replace($temporary,$Path,$null)}else{[IO.File]::Move($temporary,$Path)}
+ if(Test-Path -LiteralPath $Path){
+  # Windows PowerShell 5 converts a null string argument to an empty path.
+  $replaced=$temporary+'.bak'
+  [IO.File]::Replace($temporary,$Path,$replaced)
+  Remove-Item -LiteralPath $replaced
+ }else{[IO.File]::Move($temporary,$Path)}
 }
 function Get-AstraImageId {
  param([string]$Image)
