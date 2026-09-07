@@ -1,0 +1,14 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: Number(process.env.WEB_PORT || 4381),
+    strictPort: true,
+    proxy: {
+      '/api': { target: process.env.API_TARGET || 'http://localhost:4301', changeOrigin: true },
+      '/health': { target: process.env.API_TARGET || 'http://localhost:4301', changeOrigin: true },
+    },
+  },
+});
