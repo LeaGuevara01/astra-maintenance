@@ -111,7 +111,8 @@ export function createApp(db: PrismaClient, config: Config = readConfig()) {
   });
   api.get('/orders/:id/card', async (req, res) => {
     const format = z.enum(['a6', 'a4']).default('a6').parse(req.query.format);
-    res.type('html').send(await renderCardHtml(await getOrder(db, String(req.params.id)), format, config.origin));
+    const html = await renderCardHtml(await getOrder(db, String(req.params.id)), format, config.origin);
+    res.type('html').send(html);
   });
   api.get('/orders/:id/pdf', async (req, res) => {
     const format = z.enum(['a6', 'a4']).default('a6').parse(req.query.format);

@@ -281,6 +281,17 @@ describe('closure, continuity and snapshot documents', () => {
     await request(app).get('/health/ready').expect(200);
     expect((await request(app).get('/api/v1/version').expect(200)).body).toEqual({ version: '0.1.0', commit: 'acceptance-commit', environment: 'test' });
   });
+  it('rejects oversized cards consistently instead of clipping printable HTML or PDF', async () => {
+    const admin = await login();
+    const order = await generate(admin, 1200, 'AST-002');
+    await db.orderTask.updateMany({ where: { orderId: order.id }, data: { description: 'Detalle técnico largo que debe permanecer íntegro. '.repeat(50) } });
+    for (const endpoint of ['card', 'pdf']) for (const format of ['a6', 'a4']) {
+      const response = await admin.agent.get(`/api/v1/orders/${order.id}/${endpoint}?format=${format}`).expect(422);
+      expect(response.body.error.code).toBe('CARD_CAPACITY');
+    }
+    const detail = await admin.agent.get(`/api/v1/orders/${order.id}`).expect(200);
+    expect(detail.body.tasks[0].description).toContain('Detalle técnico largo');
+  });
   it('permits insecure cookies only in loopback staging and fails unsafe deployment config', () => {
     expect(readConfig({ APP_ENVIRONMENT: 'staging', APP_ORIGIN: 'http://localhost:4380', COOKIE_SECURE: 'false' }).secureCookie).toBe(false);
     expect(() => readConfig({ APP_ENVIRONMENT: 'staging', APP_ORIGIN: 'http://192.168.1.20', COOKIE_SECURE: 'false' })).toThrow();
