@@ -10,9 +10,9 @@ Astra sigue siendo el modelo inicial; no se cambia modelo ni se consume un créd
 - Dos repositorios privados creados en GitHub: LeaGuevara01/astra-foundation y LeaGuevara01/astra-maintenance.
 - Git de Windows autenticado y Docker funcionando.
 - Foundation tiene cinco skills validadas, contratos y generador de proyectos.
-- Backend implementado con tres migraciones y 20 pruebas de aceptación PostgreSQL aprobadas en su worktree.
+- Backend implementado con tres migraciones y 21 pruebas de aceptación PostgreSQL aprobadas en su worktree.
 - Frontend implementado y compilado, con comprobación inicial de login escritorio/móvil.
-- Backend y frontend incorporados a la rama de implementación del piloto; main conserva su base. Verificación integrada: 20 tests, typecheck y build aprobados; npm audit sin vulnerabilidades.
+- Backend y frontend incorporados a la rama de implementación del piloto; main conserva su base. Verificación integrada: 21 tests, typecheck y build aprobados; npm audit sin vulnerabilidades.
 - Scripts de operaciones y CI escritos: todavía deben comprobarse de extremo a extremo antes de declarar staging listo.
 - Corpus local inventariado: 5.219 archivos. Selección ampliada: 1.110 referencias, 1.080 hashes únicos. 634 textos extraídos, 104 documentos pendientes de OCR, 342 referencias visuales pendientes de revisión y 30 duplicados.
 - La extracción no demuestra corrección técnica. No se validaron manualmente todas las fuentes ni imágenes.
@@ -23,7 +23,7 @@ Astra sigue siendo el modelo inicial; no se cambia modelo ni se consume un créd
 Dependencias: código ya escrito, Docker, lockfile consolidado.
 1. Validar instalación reproducible y auditoría npm. Confirmar que el override deepmerge-ts 8.0.0 es compatible con Prisma 6.19.3.
 2. Ejecutar Verify.ps1 con base aislada astra_test; registrar SHA limpio y resultados.
-3. Revisar scripts de backup, restauración, exclusión mutua y rollback. La restauración de ensayo debe realizarse en un volumen nuevo, no en la base/volumen activo.
+3. Ejecutar scripts de backup, restauración, exclusión mutua y rollback. La restauración de ensayo ya usa un volumen nuevo; falta comprobarla con evidencia sobre datos sintéticos concretos.
 4. Construir imágenes por commit; ejecutar migraciones y seed sintético una sola vez o de manera idempotente.
 5. Probar navegador real: login de tres roles, lectura, OT, reserva, consumo, checkpoints, diferidos, cierre y auditoría.
 6. Renderizar y revisar PDF A6/A4: cuatro tarjetas reales en una sola A4, corte, QR, texto seleccionable y sin recorte.
@@ -31,7 +31,7 @@ Dependencias: código ya escrito, Docker, lockfile consolidado.
 8. Registrar backup y restauración en entorno aislado; ensayar rollback de imagen preservando datos.
 9. Publicar PR con evidencia y staging. Solicitar aprobación de merge solo cuando el resultado esté concreto.
 
-Salida: URL de staging operativa, SHA/digest, 20 escenarios conservados, E2E y PDF revisados, guía de recuperación comprobada.
+Salida: URL de staging operativa, SHA/digest, 21 escenarios conservados, E2E y PDF revisados, guía de recuperación comprobada.
 Límite actual del piloto: una OT preventiva abierta por activo; no representa todavía todos los planes simultáneos del documento maestro.
 
 ## Hito 2 — Biblioteca técnica local, búsqueda y OCR

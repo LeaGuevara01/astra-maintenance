@@ -8,7 +8,9 @@ Push-Location $script:AstraRoot
 try {
  $context=Get-AstraContext test -Create
  $lock=Enter-AstraLock $context
+ $ports=Resolve-AstraMutablePorts $context
  Save-AstraContext $context
+ if($ports){Write-Warning "Reassigned occupied ports for test: $($ports -join ', ')"}
  Set-AstraLocalEnvironment $context
  $env:NODE_ENV='test'
  if(!$SkipInstall){Invoke-Checked npm.cmd @('ci')}

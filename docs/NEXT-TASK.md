@@ -1,6 +1,6 @@
 # ASTRA-004 — Operaciones reproducibles y recuperación aislada
 
-Estado: definido, pendiente de implementación y ejecución. Responsable: integrador; revisión independiente acotada permitida.
+Estado: implementación avanzada; ejecución operativa pendiente. Responsable: integrador; revisión independiente acotada permitida.
 
 ## Objetivo
 Cerrar la brecha entre un piloto que pasa sus pruebas y un staging recuperable, identificado por commit e imágenes.
@@ -12,11 +12,11 @@ scripts/Common.ps1, Verify.ps1, Deploy-Staging.ps1, Backup.ps1, Restore-Check.ps
 Leer AGENTS, OPERATIONS, HANDOFF y VERIFICATION. Usar exclusivamente datos sintéticos. Conservar originales, secretos y volúmenes actuales. No debilitar las guardas de base de test ni saltar verificaciones de commit.
 
 ## Defectos y riesgos concretos para resolver
-1. Restore-Check restaura en una segunda base dentro del mismo volumen: reemplazar por proyecto Compose y volumen independientes. No apuntar comandos de restauración al proyecto activo.
+1. Confirmar con ensayo que Restore-Check en proyecto Compose y volumen independientes recupera datos sintéticos concretos. No apuntar comandos de restauración al proyecto activo.
 2. Deploy-Staging solo intenta rollback en el bloque de verificación HTTP; revisar fallos anteriores de migración, compose up y escritura de configuración. Preservar referencia recuperable y reportar con claridad cuando una migración exige intervención.
 3. Verificar que despliegue, backup y recuperación no se pisan. Evitar locks anidados que bloqueen la copia llamada desde un despliegue.
 4. Verificar npm ci en imagen limpia, build de producción, health, identificación de commit e imagen y scripts en Windows PowerShell.
-5. Revisar selección de puertos de worktree: hash no garantiza ausencia de colisiones. Detectar conflictos antes de arrancar y persistir una elección libre.
+5. Verificar en dos worktrees completos que la preasignación y revalidación de puertos persisten una elección libre y no colisionan entre entornos.
 6. La instalación reproducible ya tiene lockfile: preservar esa fijación al resolver compatibilidad.
 
 ## Aceptación

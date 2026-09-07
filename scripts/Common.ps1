@@ -21,6 +21,33 @@ function Get-AstraAvailablePort {
  }
  throw 'No free port available in the requested range'
 }
+function Set-AstraLoopbackOriginPort {
+ param($Context,[int]$Port)
+ if(!$Context.origin){$Context.origin="http://localhost:$Port";return}
+ $uri=[uri]$Context.origin
+ if($uri.Host -notin @('localhost','127.0.0.1')){return}
+ $Context.origin="$($uri.Scheme)://$($uri.Host):$Port"
+}
+function Resolve-AstraMutablePorts {
+ param($Context)
+ if($Context.environment -notin @('dev','test')){return @()}
+ $updates=@()
+ foreach($entry in @(
+  @{name='webPort';label='web'},
+  @{name='dbPort';label='db'},
+  @{name='apiPort';label='api'}
+ )){
+  $name=$entry.name
+  $current=[int]$Context.$name
+  $resolved=Get-AstraAvailablePort $current
+  if($resolved -ne $current){
+   $Context.$name=$resolved
+   if($name -eq 'webPort'){Set-AstraLoopbackOriginPort $Context $resolved}
+   $updates+="$($entry.label):$current->$resolved"
+  }
+ }
+ return $updates
+}
 function Get-AstraContext {
  param([ValidateSet('dev','test','staging','prod')][string]$Environment='dev',[switch]$Create)
  $dir=Join-Path $script:AstraRoot ".runtime/$Environment"
