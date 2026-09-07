@@ -70,8 +70,9 @@ export function auth(db: PrismaClient, config: Config) {
   };
   const requireCsrf: RequestHandler = (req, _res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-    const supplied = req.get('X-CSRF-Token') ?? '';
-    assert(req.get('Origin') === config.origin && supplied.length === req.csrfToken.length && timingSafeEqual(Buffer.from(supplied), Buffer.from(req.csrfToken)), 403, 'CSRF_INVALID', 'Token CSRF u origen inválido.');
+    const supplied = Buffer.from(req.get('X-CSRF-Token') ?? '');
+    const expected = Buffer.from(req.csrfToken);
+    assert(req.get('Origin') === config.origin && supplied.length === expected.length && timingSafeEqual(supplied, expected), 403, 'CSRF_INVALID', 'Token CSRF u origen inválido.');
     next();
   };
   const logout: RequestHandler = async (req, res) => {

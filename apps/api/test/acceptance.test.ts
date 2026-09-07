@@ -89,6 +89,8 @@ describe('preventive engine and identity', () => {
     const admin = await login();
     await admin.agent.post('/api/v1/assets').set('Origin', origin).send({ code: 'NO', name: 'Missing token', family: 'Demo', meter: 0 }).expect(403);
     await admin.agent.post('/api/v1/assets').set('Origin', 'https://evil.example').set('X-CSRF-Token', admin.csrf).send({}).expect(403);
+    const malformed = await admin.agent.post('/api/v1/assets').set('Origin', origin).set('X-CSRF-Token', 'é'.repeat(admin.csrf.length)).send({}).expect(403);
+    expect(malformed.body.error.code).toBe('CSRF_INVALID');
     await db.session.updateMany({ data: { expiresAt: new Date(0) } });
     await admin.agent.get('/api/v1/assets').expect(401);
   });
