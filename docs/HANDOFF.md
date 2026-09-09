@@ -20,6 +20,12 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
 - Cinco skills genéricas validaron su formato; una skill específica guía consulta de fuentes.
 - GitHub privado creado y autenticación Git de Windows disponible.
 - Corpus local indexado en .runtime/sources, con 1.110 referencias seleccionadas; la revisión técnica del corpus no está completada.
+- ASTRA-009 Agent Coordination Layer integrado desde PR #3. La revisión de integración
+  dejó los contratos de producto, API y ADR aceptados como autoridad hasta que el
+  integrador incorpore formalmente una decisión humana en el contrato canónico aplicable.
+  Evidencia: `Pilot checks` aprobó para `a3ab8b29b831ac0fd83ffbeb1265c871b078061d`
+  (run `34295975554`), con typecheck, pruebas, build, migración, auditoría de
+  dependencias y validación de scripts de Windows.
 
 ## Pendientes que impiden llamar lista a la entrega
 1. Ejecutar E2E real con navegador, API y PostgreSQL en staging para los tres roles.
@@ -28,6 +34,8 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
 4. Registrar y ensayar el schedule de backup diario con Register-Backup.ps1 si ese entorno va a quedar persistente.
 5. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
 6. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
+7. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
+   respetando la asignación de rutas y el protocolo de handoff.
 
 ## Reglas operativas
 Los secretos y referencias locales están en .runtime, ignorado por Git. No mostrarlos en logs ni incluirlos en PR.
