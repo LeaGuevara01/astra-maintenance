@@ -4,7 +4,7 @@ Read docs/PRODUCT.md, docs/API-CONTRACT.md and docs/HANDOFF.md before editing. S
 
 For coordinated multi-agent work, also read docs/AGENT-OPERATING-MODEL.md and docs/DEFINITION-OF-DONE.md. Use docs/AGENT-TASK-TEMPLATE.md when a task is delegated to an implementation agent.
 
-Delegate only bounded independent tasks. Use one integrator and up to two specialists. Each implementation agent has its own branch/worktree and path ownership. Backend owns apps/api and prisma. Frontend owns apps/web. Integrator owns root configuration, lockfile, shared contracts and deployment. Preserve other agents' work.
+Delegate only bounded independent tasks. Use one integrator and up to two specialists. Each implementation agent has its own branch/worktree and path ownership. Backend owns apps/api by default; prisma requires explicit database ownership for the task. Frontend owns apps/web. Integrator owns root configuration, lockfile, shared contracts and deployment. Preserve other agents' work.
 
 Autonomy extends through tests, review, commits, PR and synthetic staging. Human approval is required before merging main or production deployment. Do not silently claim unavailable checks passed.
 
