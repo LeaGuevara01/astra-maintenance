@@ -42,8 +42,8 @@ Tool identity never determines branch naming or ownership. ASTRA task identity d
 ## Source of truth order
 
 When sources disagree, stop and reconcile rather than guessing. Default authority order:
-1. Explicit human decision recorded in current task/PR.
-2. Accepted product/API/ADR contracts.
+1. Accepted product/API/ADR contracts. A new human decision supersedes them only after the integrator records it in the applicable canonical contract.
+2. Explicit human decisions recorded in the current task/PR that do not conflict with accepted contracts.
 3. Verified current implementation and tests.
 4. HANDOFF/VERIFICATION evidence tied to a SHA.
 5. Roadmap/planning documents.
