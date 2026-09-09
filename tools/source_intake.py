@@ -60,7 +60,8 @@ def main():
     for i,item in enumerate(selected):
         path=Path(item["path"]);entry=dict(item)
         try:
-            digest=hashlib.file_digest(path.open("rb"),"sha256").hexdigest()
+            with path.open("rb") as handle:
+                digest=hashlib.file_digest(handle,"sha256").hexdigest()
             entry.update(id="SRC-"+digest[:12],sha256=digest,reviewStatus="UNREVIEWED")
             name=path.name
             if re.search(r"factura|presupuesto|remito|pago|precio",name,re.I):kind="COMMERCIAL_HISTORY"
