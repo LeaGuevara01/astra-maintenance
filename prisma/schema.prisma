@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TECHNICIAN
+  VIEWER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role
+  active       Boolean   @default(true)
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  csrfToken String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([expiresAt])
+}
+
+model Asset {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  family          String
+  meter           Int
+  operatingStatus String   @default("A_CONFIRMAR")
+  planId          String?
+  plan            Plan?    @relation(fields: [planId], references: [id])
+  readings        Reading[]
+  orders          WorkOrder[]
+}
+
+model Reading {
+  id        String   @id @default(cuid())
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  value     Int
+  actorId   String
+  createdAt DateTime @default(now())
+}
+
+model Plan {
+  id          String     @id @default(cuid())
+  code        String
+  name        String
+  revision    Int        @default(1)
+  status      String     @default("ACTIVE")
+  tasks       PlanTask[]
+  assets      Asset[]
+  orders      WorkOrder[]
+  @@unique([code, revision])
+}
+
+model PlanTask {
+  id              String   @id @default(cuid())
+  planId          String
+  plan            Plan     @relation(fields: [planId], references: [id])
+  code            String
+  description     String
+  frequency       Int
+  mandatory       Boolean  @default(true)
+  blocking        Boolean  @default(false)
+  sourceType      String   @default("SYNTHETIC")
+  sourceReference String   @default("A_CONFIRMAR")
+  partId          String?
+  part            Part?    @relation(fields: [partId], references: [id])
+  quantity        Decimal? @db.Decimal(12, 3)
+  @@unique([planId, code])
+}
+
+model Part {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  name       String
+  partNumber String   @default("A_CONFIRMAR")
+  unit       String
+  onHand     Decimal  @default(0) @db.Decimal(12, 3)
+  reserved   Decimal  @default(0) @db.Decimal(12, 3)
+  planTasks  PlanTask[]
+  materials  OrderMaterial[]
+  movements  StockMovement[]
+}
+
+model WorkOrder {
+  id              String          @id @default(cuid())
+  number          Int             @unique @default(autoincrement())
+  assetId         String
+  asset           Asset           @relation(fields: [assetId], references: [id])
+  planId          String
+  plan            Plan            @relation(fields: [planId], references: [id])
+  assetSnapshot   Json
+  planSnapshot    Json
+  status          String          @default("OPEN")
+  targetMeter     Int
+  actualMeter     Int
+  nextServiceMeter Int
+  result          String?
+  notes           String?
+  createdAt       DateTime        @default(now())
+  closedAt        DateTime?
+  closedBy        String?
+  tasks           OrderTask[]
+  materials       OrderMaterial[]
+  checkpoints     Checkpoint[]
+  @@unique([assetId, planId, targetMeter])
+  @@index([status, createdAt])
+}
+
+model OrderTask {
+  id              String    @id @default(cuid())
+  orderId         String
+  order           WorkOrder @relation(fields: [orderId], references: [id])
+  code            String
+  description     String
+  frequency       Int
+  status          String    @default("PENDING")
+  mandatory       Boolean
+  blocking        Boolean
+  sourceType      String
+  sourceReference String
+  partId          String?
+  quantity        Decimal?  @db.Decimal(12, 3)
+  deferredReason  String?
+  deferredUntil   DateTime?
+  deferredBy     String?
+  sourceLinks     DeferredLink[] @relation("Continuation")
+  continuation    DeferredLink?  @relation("Source")
+  @@unique([orderId, code])
+}
+
+model DeferredLink {
+  id           String @id @default(cuid())
+  sourceTaskId String @unique
+  sourceTask   OrderTask @relation("Source", fields: [sourceTaskId], references: [id])
+  targetTaskId String
+  targetTask   OrderTask @relation("Continuation", fields: [targetTaskId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model OrderMaterial {
+  id               String    @id @default(cuid())
+  orderId          String
+  order            WorkOrder @relation(fields: [orderId], references: [id])
+  partId           String
+  part             Part      @relation(fields: [partId], references: [id])
+  partSnapshot     Json
+  quantityPlanned  Decimal   @db.Decimal(12, 3)
+  quantityReserved Decimal   @default(0) @db.Decimal(12, 3)
+  quantityUsed     Decimal   @default(0) @db.Decimal(12, 3)
+  @@unique([orderId, partId])
+}
+
+model Checkpoint {
+  id       String    @id @default(cuid())
+  orderId  String
+  order    WorkOrder @relation(fields: [orderId], references: [id])
+  code     String
+  label    String
+  critical Boolean
+  result   String    @default("PENDING")
+  @@unique([orderId, code])
+}
+
+model StockMovement {
+  id          String   @id @default(cuid())
+  partId      String
+  part        Part     @relation(fields: [partId], references: [id])
+  orderId     String?
+  kind        String
+  quantity    Decimal  @db.Decimal(12, 3)
+  reference   String
+  actorId     String
+  createdAt   DateTime @default(now())
+  @@index([partId, createdAt])
+}
+
+model Audit {
+  id        String   @id @default(cuid())
+  actorId   String
+  actorName String
+  action    String
+  entityId  String
+  details   Json
+  createdAt DateTime @default(now())
+  @@index([entityId, createdAt])
+}
+
+model Idempotency {
+  id          String   @id @default(cuid())
+  scope       String
+  key         String
+  requestHash String
+  response    Json
+  createdAt   DateTime @default(now())
+  @@unique([scope, key])
+}
