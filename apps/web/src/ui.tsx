@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { AlertTriangle, ArrowRight, Check, LoaderCircle, Search, X } from 'lucide-react';
 import { ApiError } from './api';
 
-export const number = (value: number | string) => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(Number(value));
+export const number = (value: number | string, maximumFractionDigits = 2) => new Intl.NumberFormat('es-AR', { maximumFractionDigits }).format(Number(value));
 export const date = (value?: string, time = false) => value ? new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium', ...(time ? { timeStyle: 'short' as const } : {}) }).format(new Date(value)) : '—';
 const labels: Record<string, string> = { OPEN: 'Abierta', IN_PROGRESS: 'En ejecución', CLOSED: 'Cerrada', PENDING: 'Pendiente', DONE: 'Realizada', DEFERRED: 'Diferida', NA: 'No aplica', PASS: 'Conforme', FAIL: 'No conforme', OPERATIVE: 'Operativo', OPERATIVE_WITH_NOTES: 'Con observaciones', NOT_OPERATIVE: 'No operativo', ACTIVE: 'Activo', DRAFT: 'Borrador', RELEASED: 'Vigente', ADMIN: 'Administrador', TECHNICIAN: 'Técnico', VIEWER: 'Consulta', SYNTHETIC: 'Demostración', A_CONFIRMAR: 'A confirmar' };
 export const label = (value: string) => labels[value] || value.replaceAll('_', ' ');
