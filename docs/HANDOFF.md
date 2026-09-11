@@ -42,7 +42,7 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
 2. Registrar y ensayar el schedule de backup diario con `Register-Backup.ps1` si ese entorno va a quedar persistente.
 3. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
 4. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
-5. ASTRA-006 implementado en `bce8d6a` (`feat/ASTRA-006-document-intelligence`): normalización local, extracción parcial, cola OCR y cola de revisión humana conservadora. Typecheck API/web, test focalizado 3/3, build, audit y normalización local pasaron. `Verify.ps1` no llegó a migraciones ni a la suite PostgreSQL: Docker Compose rechazó el montaje Caddy con `invalid spec: :/etc/caddy/Caddyfile:ro: empty section between colons`. Resolver ese bloqueo operativo y rerun de Verify antes de staging; falta además revisión humana del corpus y el dry-run de importación de ASTRA-007.
+5. ASTRA-006 y la corrección operativa de Compose están desplegadas en staging local con `32a5972` (`feat/ASTRA-006-document-intelligence`). `Verify.ps1 -SkipInstall` completó migraciones, typecheck, 21 tests y build sobre `astra_test`; audit no encontró vulnerabilidades. `Deploy-Staging.ps1` preservó un backup y `/health/ready`, `/api/v1/version` y el footer de la UI coincidieron en `32a5972`. Ver `docs/VERIFICATION.md`; faltan revisión humana del corpus y el dry-run de importación de ASTRA-007.
 6. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
    respetando la asignación de rutas y el protocolo de handoff.
 

@@ -1,6 +1,6 @@
 # ASTRA-006 — Inteligencia documental conservadora
 
-Estado: ASTRA-005 cerrado en staging; ASTRA-006 implementado como slice local determinista en la rama `feat/ASTRA-006-document-intelligence`.
+Estado: ASTRA-005 cerrado en staging; ASTRA-006 implementado y desplegado en staging sintético como slice local determinista en `32a5972` de la rama `feat/ASTRA-006-document-intelligence`.
 
 ## Objetivo
 Normalizar el inventario documental local y registrar extracción parcial, OCR y cola de revisión técnica sin convertir documentos o similitud en equivalencia técnica.

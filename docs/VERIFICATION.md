@@ -10,6 +10,13 @@
 - `Verify.ps1` se intentó contra la base aislada `astra_test`, pero Docker Compose rechazó el montaje de Caddy con `invalid spec: :/etc/caddy/Caddyfile:ro: empty section between colons` antes de migraciones y suite PostgreSQL. Por ello esos checks no están aprobados para este SHA.
 - Staging responde `ready`, pero `/api/v1/version` sigue en `b21b347b80a5eeac3df13ebaf69a394f05621f41`; es evidencia histórica de ASTRA-005, no despliegue de este target.
 
+### Redeploy vigente — 2026-09-11
+
+- Se corrigió `Invoke-AstraCompose` en `32a597219a72fed9cb167104ffd4b1b5e5316f05`: elimina por completo los overrides de proceso antes de invocar Compose y los restaura después. El uso previo de `SetEnvironmentVariable(..., $null)` dejaba `CADDYFILE` vacío y provocaba el montaje inválido.
+- `Verify.ps1 -SkipInstall` completó con PostgreSQL aislado `astra_test`: Prisma generate/migrate, typecheck API/web, 21 tests de aceptación y build. El registro `.runtime/test/verification.json` está limpio y corresponde exactamente a `32a5972`; `npm audit --audit-level=high` informó 0 vulnerabilidades.
+- `Deploy-Staging.ps1` creó el backup local previo y publicó las imágenes API/web de `32a5972`. `http://localhost:4380/health/ready` devolvió `ready`; `/api/v1/version` devolvió `32a597219a72fed9cb167104ffd4b1b5e5316f05` en `staging`.
+- La interfaz de `http://localhost:4380` cargó conectada y el footer mostró `v0.1.0 · 32a59721`. No se ejecutaron nuevas mutaciones E2E ni revisión PDF porque ASTRA-006 no altera esas superficies; la evidencia ASTRA-005 previa sigue siendo histórica.
+
 Fecha de ejecución: 2026-09-11 UTC. Rama local: `main`, limpia y alineada con `origin/main`.
 
 - Verify histórico vigente: `npm ci`/`-SkipInstall`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. El código funcional entre `48f362a` y `b21b347` no cambió; el merge actualizó documentación y dejó `main` limpio.
