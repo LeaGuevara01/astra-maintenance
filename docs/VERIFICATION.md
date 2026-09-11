@@ -1,5 +1,16 @@
 # Evidencia local del checkpoint
 
+## ASTRA-005 — target E2E `a3c234992cc445b966b3805f6289dd4a0cc974bf`
+
+Fecha de ejecución: 2026-09-11 UTC. Rama local: `fix/ASTRA-005-e2e-target`, basada en `origin/main@91c1c2a`. No se hizo merge ni push remoto.
+
+- Verify limpio: `npm ci`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. Registro: `.runtime/test/verification.json`, `dirty=false`, SHA `a3c234992cc445b966b3805f6289dd4a0cc974bf`.
+- Staging sintético: `http://localhost:4380`; `Deploy-Staging.ps1` completó backup, imágenes API/web y readiness. El servicio publica el SHA exacto.
+- E2E API sanitizado: run `QA005-20260911022232`, OT `OT-000004`, ID `cmtwbzm890006kc0k3twwsc9i`. ADMIN/TECHNICIAN/VIEWER autenticaron; ADMIN creó activo y generó 600/645; TECHNICIAN reservó 1, consumió 1, completó 2 tareas y cerró `OPERATIVE`; VIEWER leyó la OT abierta/cerrada y no pudo escribir (`403 FORBIDDEN`).
+- Negativos: cierre prematuro `TASKS_PENDING`; crítico pendiente `CRITICAL_CHECKPOINT`; crítico `NA` `CRITICAL_NA`; `NOT_OPERATIVE` con crítico `FAIL` `CRITICAL_CHECKPOINT`; nueva clave postcierre `ORDER_CLOSED`; replay de cierre `200` sin duplicar efecto.
+- Documentos cerrados: A6/A4 HTTP 200. A6 una página 105×148 mm; A4 una página 210×297 mm con cuatro tarjetas. Texto, QR, snapshots, `A_CONFIRMAR` y límites visuales verificados con PyMuPDF. Hashes en `.runtime/qa-20260911/pdf-checks.json`.
+- UI: login y pantalla de acceso cargaron en Edge; las operaciones se validaron contra la API real para no imprimir ni transmitir las contraseñas sintéticas.
+
 Fecha: 2026-09-07 UTC.
 - Backend worktree: tres migraciones aplicadas; 21 tests PostgreSQL pasaron.
 - Repositorio integrado: scripts/Verify.ps1 -SkipInstall pasó migraciones en base nueva, typecheck de API/web, 21 tests y build sobre el commit limpio `2ef666a`.

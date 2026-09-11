@@ -1,5 +1,13 @@
 # Continuidad de ASTRA Maintenance
 
+## Checkpoint ejecutado — ASTRA-005 target `a3c2349`
+
+- Rama local `fix/ASTRA-005-e2e-target`, basada en `origin/main@91c1c2a`; sin merge/push remoto.
+- Se portaron las correcciones CSRF multibyte, horómetros enteros y recarga de auditoría, y se formalizó P06: ningún resultado de cierre, incluido `NOT_OPERATIVE`, omite un checkpoint crítico `PENDING`/`FAIL`.
+- Verify limpio y staging sintético desplegado en `http://localhost:4380` con SHA completo `a3c234992cc445b966b3805f6289dd4a0cc974bf`.
+- E2E API completo y PDF QA ejecutados sobre `QA005-20260911022232` / `OT-000004`; ver `docs/VERIFICATION.md` y `.runtime/qa-20260911`.
+- Pendiente externo: publicar la rama para CI remota/PR requiere autorización explícita de egress; `main` no fue modificado.
+
 ## Objetivo activo
 Cerrar el piloto preventivo hasta staging y después incorporar de forma revisable el corpus técnico del usuario. El usuario pidió ampliar el plan y dejar instrucciones para continuar; este documento conserva el checkpoint.
 
