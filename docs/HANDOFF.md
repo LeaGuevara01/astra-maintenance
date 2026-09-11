@@ -47,7 +47,7 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
    respetando la asignación de rutas y el protocolo de handoff.
 7. Revisar el dry-run de ASTRA-007 con fuentes humanas y decidir si procede una aplicación transaccional. El build frontend ya fue aprobado al ejecutarlo fuera del aislamiento que causaba `spawn EPERM`.
 
-Última verificación de código: `964fd9702e9d5769d48cbc242d158d5b85540234`; `Verify.ps1 -SkipInstall` pasó con 27 pruebas y build completo. Staging publica ese mismo SHA y la identidad fue confirmada por `/api/v1/version`. El checkout actual es `cb39958`, que sólo agrega documentación de revisión posterior y aún no está desplegado.
+Última verificación de código: `6aa6293591016c33f37728ca4b30ebacc332ed7d`; `Verify.ps1 -SkipInstall` pasó con 27 pruebas y build completo. Staging publica ese mismo SHA y la identidad fue confirmada por `/api/v1/version`. El módulo web de revisión documental está disponible en `/documents` con datos sintéticos; sus decisiones no persisten.
 
 Revisión ASTRA-007 del 2026-09-11: se inspeccionaron tres fuentes técnicas priorizadas en texto extraído. La recomendación es no autorizar todavía la aplicación transaccional; falta revisión visual/OCR y confirmación de variante/sustituciones. Ver `docs/ASTRA-007-REVIEW.md`.
 

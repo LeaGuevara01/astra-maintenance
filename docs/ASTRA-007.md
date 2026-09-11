@@ -23,3 +23,7 @@ Resultado: 3/3 pruebas del contrato, typecheck de API y web y build completo apr
 ## Próximo paso
 
 ASTRA-008: decidir el contrato de aplicación transaccional e idempotente y su migración/API sólo después de revisar este dry-run y sus fuentes; nunca cargar cantidades históricas como stock.
+
+## Módulo web de validación
+
+La consola incluye `Inteligencia documental` en `/documents` para datos sintéticos. Permite revisar tres candidatos representativos, consultar procedencia/localizador, cambiar la decisión en la sesión y ver el resultado del lote. Esta primera pantalla es un prototipo de revisión: las decisiones no persisten y no existe botón de aplicación ni modificación de inventario. El módulo fue incluido en el staging del SHA `6aa6293`.
