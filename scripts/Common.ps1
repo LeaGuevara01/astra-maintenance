@@ -112,13 +112,19 @@ function Invoke-AstraCompose {
  try {
   foreach($line in (Get-Content -LiteralPath $Context.envPath)){
    if($line -match '^([A-Z_][A-Z0-9_]*)='){
-    $name=$Matches[1];$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')
-    [Environment]::SetEnvironmentVariable($name,$null,'Process')
+    $name=$Matches[1];$present=Test-Path -LiteralPath "Env:$name"
+    $saved[$name]=@{present=$present;value=[Environment]::GetEnvironmentVariable($name,'Process')}
+    if($present){Remove-Item -LiteralPath "Env:$name"}
    }
   }
   $composePath=if($Context.PSObject.Properties.Name -contains 'composePath'){$Context.composePath}else{Join-Path $script:AstraRoot 'compose.yaml'}
   Invoke-Checked docker (@('compose','--env-file',$Context.envPath,'-p',$Context.project,'-f',$composePath)+$Arguments)
- } finally {foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}}
+ } finally {
+  foreach($name in $saved.Keys){
+   if($saved[$name].present){[Environment]::SetEnvironmentVariable($name,$saved[$name].value,'Process')}
+   else{Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue}
+  }
+ }
 }
 function Set-AstraLocalEnvironment {
  param($Context)
