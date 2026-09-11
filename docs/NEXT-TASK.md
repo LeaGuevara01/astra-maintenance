@@ -36,6 +36,6 @@ Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exc
 Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION. Para ASTRA-006 se agrega `docs/ASTRA-006.md` y la evidencia local se genera sólo debajo de `.runtime`.
 
 ## Tareas siguientes
-ASTRA-007: contratos de procedencia e importación dry-run de candidatos; no cargar cantidades históricas como stock.
-ASTRA-007: contratos de procedencia e importación dry-run de candidatos; no cargar cantidades históricas como stock.
-ASTRA-008: validar cinco skills en una sesión nueva y extraer plugin astra-engineering después de demostrar el piloto.
+ASTRA-007: revisar el dry-run de candidatos y sus fuentes con decisión humana; no aplicar ni cargar cantidades históricas como stock hasta cerrar esa revisión.
+ASTRA-008: definir, sólo después de la revisión, la aplicación transaccional/idempotente y la API versionada; mantener `A_CONFIRMAR`.
+ASTRA-009: validar cinco skills en una sesión nueva y extraer plugin astra-engineering después de demostrar el piloto.

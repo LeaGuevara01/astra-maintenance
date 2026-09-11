@@ -42,9 +42,12 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
 2. Registrar y ensayar el schedule de backup diario con `Register-Backup.ps1` si ese entorno va a quedar persistente.
 3. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
 4. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
-5. ASTRA-006 y la corrección operativa de Compose están desplegadas en staging local con `32a5972` (`feat/ASTRA-006-document-intelligence`). `Verify.ps1 -SkipInstall` completó migraciones, typecheck, 21 tests y build sobre `astra_test`; audit no encontró vulnerabilidades. `Deploy-Staging.ps1` preservó un backup y `/health/ready`, `/api/v1/version` y el footer de la UI coincidieron en `32a5972`. Ver `docs/VERIFICATION.md`; faltan revisión humana del corpus y el dry-run de importación de ASTRA-007.
+5. ASTRA-006 y la corrección operativa de Compose están desplegadas en staging local con `32a5972` (`feat/ASTRA-006-document-intelligence`). `Verify.ps1 -SkipInstall` completó migraciones, typecheck, 21 tests y build sobre `astra_test`; audit no encontró vulnerabilidades. `Deploy-Staging.ps1` preservó un backup y `/health/ready`, `/api/v1/version` y el footer de la UI coincidieron en `32a5972`. Ver `docs/VERIFICATION.md`; la revisión humana del corpus permanece pendiente. ASTRA-007 ya tiene contrato y pruebas locales, pero no está desplegado.
 6. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
    respetando la asignación de rutas y el protocolo de handoff.
+7. Revisar el dry-run de ASTRA-007 con fuentes humanas y decidir si procede una aplicación transaccional. El build frontend ya fue aprobado al ejecutarlo fuera del aislamiento que causaba `spawn EPERM`.
+
+Última verificación local del checkout: `82de693`; `Verify.ps1 -SkipInstall` pasó con 27 pruebas y build completo. Staging continúa deliberadamente en `32a5972`; no se atribuyen los cambios ASTRA-007 a la interfaz desplegada.
 
 ## Reglas operativas
 Los secretos y referencias locales están en .runtime, ignorado por Git. No mostrarlos en logs ni incluirlos en PR.

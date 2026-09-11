@@ -1,5 +1,12 @@
 # Evidencia local del checkpoint
 
+## ASTRA-007 — verificación vigente del checkout
+
+- Target verificado: `82de693` en `feat/ASTRA-006-document-intelligence`; `main` no fue mergeada.
+- `Verify.ps1 -SkipInstall` pasó el 2026-09-11 con Prisma generate/migrate sobre PostgreSQL aislado `astra_test`, typecheck API/web, 27 pruebas y build API/web. El contexto reasignó el puerto de test `50374` a `50375` por ocupación previa.
+- El build frontend requirió ejecución fuera del aislamiento restringido por `spawn EPERM`; Vite compiló 1.846 módulos y generó el bundle de producción de 250.69 kB.
+- Staging sigue sano en `http://localhost:4380`, pero `/api/v1/version` publica `32a597219a72fed9cb167104ffd4b1b5e5316f05`. Por tanto, ASTRA-007 está verificado localmente y todavía no está desplegado.
+
 ## ASTRA-005 — verificación vigente, target `b21b347b80a5eeac3df13ebaf69a394f05621f41`
 
 ## ASTRA-006 — verificación local de inteligencia documental
