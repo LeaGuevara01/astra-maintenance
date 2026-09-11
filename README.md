@@ -3,7 +3,7 @@
 Piloto preventivo de mantenimiento para Windows y red local. React/Vite, Express/TypeScript, Prisma/PostgreSQL.
 
 ## Checkpoint
-Código API y web implementado e integrado en la rama feat/ASTRA-001-preventive-pilot. Pasan 21 tests PostgreSQL, typecheck y build. npm audit: 0 vulnerabilidades en la verificación local. Staging sintético local, backup/restore aislado, rollback y ensayo de dos worktrees completos ya quedaron ejecutados; E2E completo y PDF visual aún pendientes.
+Código API y web implementado e integrado en `main` (`b21b347`). Pasan 21 tests PostgreSQL, typecheck y build en la verificación registrada. Staging sintético local, backup/restore aislado, rollback, E2E de tres roles y revisión visual PDF A6/A4 ya quedaron ejecutados sobre datos sintéticos.
 
 Leer [continuidad](docs/HANDOFF.md), [roadmap ampliado](docs/ROADMAP-EXTENDED.md), [contrato API](docs/API-CONTRACT.md), [operaciones](docs/OPERATIONS.md) y [referencias técnicas](docs/TECHNICAL-REFERENCE.md).
 

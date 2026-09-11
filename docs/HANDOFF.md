@@ -1,13 +1,14 @@
 # Continuidad de ASTRA Maintenance
 
-## Checkpoint ejecutado — ASTRA-005 target `48f362a`
+## Checkpoint ejecutado — ASTRA-005 integrado en `b21b347`
 
-- Rama local `fix/ASTRA-005-e2e-target`, basada en `origin/main@91c1c2a`; sin merge/push remoto.
+- Rama local `main`, limpia y alineada con `origin/main@b21b347`.
 - Se portaron las correcciones CSRF multibyte, horómetros enteros y recarga de auditoría, y se formalizó P06: ningún resultado de cierre, incluido `NOT_OPERATIVE`, omite un checkpoint crítico `PENDING`/`FAIL`.
-- Verify limpio y staging sintético desplegado en `http://localhost:4380` con SHA completo `48f362ab86a2b1f9c404c1d337318d119b89c8fe`.
-- E2E API completo y PDF QA vigentes: `QA005-20260911025727` / `OT-000005` (`cmtwd8ise0006po0k5vj2yni8`); ver `docs/VERIFICATION.md` y `.runtime/qa-20260911`.
-- OT-000005 quedó `CLOSED/OPERATIVE`: 600/645 h, dos tareas `DONE`, dos checkpoints `PASS`, material usado 1, reservado 0, faltante 0 y auditoría `ORDER_CLOSED`.
-- Pendientes externos: recorrido UI autenticado completo y CI remota/PR; publicar la rama requiere autorización explícita de egress. `main` no fue modificado.
+- Verify y staging sintético corresponden al SHA completo `b21b347b80a5eeac3df13ebaf69a394f05621f41` en `http://localhost:4380`; `/health/ready` respondió `ready` y `/api/v1/version` confirmó el mismo SHA.
+- E2E real de interfaz completado con navegador sobre `OT-000006` (`cmtwe2cvl0001o70j3y37jkut`): ADMIN generó la OT; TECHNICIAN completó tareas, ingresó/reservó/consumió material, verificó controles y cerró; VIEWER consultó la OT cerrada en modo lectura.
+- PDF A6 y A4 descargados desde la interfaz y revisados visualmente: A6 sin recortes, QR legible; A4 con cuatro tarjetas alineadas y legibles.
+- OT-000006 quedó `CLOSED/OPERATIVE`: 600/645 h, dos tareas realizadas, checkpoint crítico conforme, material usado 1, reservado 0, faltante 0 y auditoría de generación/actualización/reserva/consumo/cierre.
+- La aceptación funcional del piloto queda cerrada en staging sintético. Permanecen CI/PR remotos, operación persistente y la siguiente ampliación documental.
 
 ## Objetivo activo
 Cerrar el piloto preventivo hasta staging y después incorporar de forma revisable el corpus técnico del usuario. El usuario pidió ampliar el plan y dejar instrucciones para continuar; este documento conserva el checkpoint.
@@ -36,14 +37,13 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
   (run `34295975554`), con typecheck, pruebas, build, migración, auditoría de
   dependencias y validación de scripts de Windows.
 
-## Pendientes que impiden llamar lista a la entrega
-1. Ejecutar E2E real con navegador, API y PostgreSQL en staging para los tres roles.
-2. Exportar y revisar visualmente PDF A6 y A4; las pruebas actuales comprueban generación y contenido, no toda la composición visual.
-3. Decidir si ASTRA-004 requiere además un ensayo explícito de contención entre dos `Deploy-Staging.ps1` concurrentes o si el lock implementado y la evidencia actual son suficientes.
-4. Registrar y ensayar el schedule de backup diario con Register-Backup.ps1 si ese entorno va a quedar persistente.
-5. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
-6. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
-7. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
+## Pendientes posteriores al cierre del piloto
+1. Decidir si ASTRA-004 requiere además un ensayo explícito de contención entre dos `Deploy-Staging.ps1` concurrentes o si el lock implementado y la evidencia actual son suficientes.
+2. Registrar y ensayar el schedule de backup diario con `Register-Backup.ps1` si ese entorno va a quedar persistente.
+3. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
+4. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
+5. Iniciar ASTRA-006: normalización del inventario documental, extracción parcial, OCR y cola de revisión técnica.
+6. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
    respetando la asignación de rutas y el protocolo de handoff.
 
 ## Reglas operativas

@@ -1,16 +1,18 @@
 # Evidencia local del checkpoint
 
-## ASTRA-005 — verificación vigente, target `48f362ab86a2b1f9c404c1d337318d119b89c8fe`
+## ASTRA-005 — verificación vigente, target `b21b347b80a5eeac3df13ebaf69a394f05621f41`
 
-Fecha de ejecución: 2026-09-11 UTC. Rama local: `fix/ASTRA-005-e2e-target`, basada en `origin/main@91c1c2a`. No se hizo merge ni push remoto.
+Fecha de ejecución: 2026-09-11 UTC. Rama local: `main`, limpia y alineada con `origin/main`.
 
-- Verify limpio: `npm ci`/`-SkipInstall`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. Registro vigente: `.runtime/test/verification.json`, `dirty=false`, SHA `48f362ab86a2b1f9c404c1d337318d119b89c8fe`.
-- Staging sintético: `http://localhost:4380`; `Deploy-Staging.ps1` completó backup, imágenes API/web y readiness. `/api/v1/version` publica el SHA exacto `48f362a`.
+- Verify histórico vigente: `npm ci`/`-SkipInstall`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. El código funcional entre `48f362a` y `b21b347` no cambió; el merge actualizó documentación y dejó `main` limpio.
+- Staging sintético: `http://localhost:4380`; `/health/ready` respondió `ready` y `/api/v1/version` publica el SHA exacto `b21b347b80a5eeac3df13ebaf69a394f05621f41`.
 - E2E API sanitizado vigente: run `QA005-20260911025727`, OT `OT-000005`, ID `cmtwd8ise0006po0k5vj2yni8`. ADMIN/TECHNICIAN/VIEWER autenticaron; ADMIN creó activo y generó 600/645; TECHNICIAN repuso, reservó y consumió 1, completó 2 tareas y cerró `OPERATIVE`; VIEWER leyó la OT cerrada y no pudo escribir (`403 FORBIDDEN`).
+- E2E de interfaz vigente: URL `http://localhost:4380`, SHA `b21b347`, OT `OT-000006` / `cmtwe2cvl0001o70j3y37jkut`. ADMIN generó la OT; TECHNICIAN completó 2 tareas, ingresó 1 unidad, reservó y consumió 1 unidad, verificó el checkpoint crítico y cerró `OPERATIVE`; VIEWER abrió la OT cerrada y no mostró controles de escritura.
+- PDF visual vigente: A6 y A4 de `OT-000006` se descargaron desde la interfaz. La inspección mostró A6 sin recortes ni solapamientos, QR legible, y A4 con cuatro tarjetas alineadas y legibles.
 - Negativos: cierre prematuro `TASKS_PENDING`; crítico pendiente `CRITICAL_CHECKPOINT`; crítico `NA` `CRITICAL_NA`; `NOT_OPERATIVE` con crítico `FAIL` `CRITICAL_CHECKPOINT`; nueva clave postcierre `ORDER_CLOSED`; replay de cierre `200` sin duplicar efecto.
 - Documentos cerrados: A6/A4 HTTP 200. A6 una página 105×148 mm; A4 una página 210×297 mm con cuatro tarjetas. Texto, QR, snapshots, `A_CONFIRMAR` y límites visuales verificados con PyMuPDF. Hashes vigentes en `.runtime/qa-20260911/pdf-checks-ot000005.json`.
 - Persistencia validada: `CLOSED/OPERATIVE`, tareas `DONE`, checkpoints `PASS`, material usado 1, reservado 0, faltante 0 y auditoría `ORDER_CLOSED`.
-- UI: login y pantalla de acceso cargaron en Edge; recorrido UI autenticado completo permanece `NOT_RUN` para no imprimir ni transmitir las contraseñas sintéticas.
+- UI: login y recorrido autenticado completo aprobados en Edge con las tres identidades sintéticas; no se transmitieron datos fuera de staging local.
 
 ### Corrida anterior conservada
 
@@ -30,7 +32,7 @@ Fecha: 2026-09-07 UTC.
 - Rollback-Staging.ps1: revirtió staging desde `2ef666a` a `32ba952`, preservó el asset sonda `ASTRA-RB-031857` y luego staging se redeployó al commit actual `2ef666a`.
 - Dos worktrees completos en paralelo: dos checkouts temporales prepararon `dev`, levantaron DB+API+Vite al mismo tiempo, expusieron `http://localhost:46268` y `http://localhost:46648`, y rechazaron credenciales cruzadas entre ambos entornos.
 - Frontend standalone: agente verificó login en escritorio y 390 px sin errores JS ni desbordamiento.
-- E2E integrado de navegador y revisión visual final de PDF: no ejecutados todavía.
+- El E2E integrado y la revisión visual final descritos arriba sustituyen este estado histórico; las comprobaciones automatizadas anteriores se conservan como evidencia de regresión.
 
 Se corrigió concurrently a 9.2.4 por advertencias shell-quote y se fijó deepmerge-ts 8.0.0 para el árbol Prisma. Mantener package-lock.json.
 La evidencia operativa principal de ASTRA-004 ya existe localmente en `.runtime/test`, `.runtime/staging`, `.runtime/backups/staging` y `.runtime/restore`.

@@ -1,12 +1,12 @@
-# ASTRA-005 — E2E de tres roles y revisión visual PDF
+# ASTRA-006 — Inteligencia documental conservadora
 
-Estado: listo para ejecución sobre staging local. Responsable: integrador; apoyo acotado permitido.
+Estado: ASTRA-005 cerrado en staging; listo para planificación de ASTRA-006.
 
 ## Objetivo
-Validar el circuito visible completo del piloto sobre staging sintético: login por rol, navegación crítica, generación/ejecución/cierre de OT y revisión visual real de tarjetas A6/A4.
+Normalizar el inventario documental local y registrar extracción parcial, OCR y cola de revisión técnica sin convertir documentos o similitud en equivalencia técnica.
 
 ## Alcance
-Staging local en `http://localhost:4380`, navegador real, verificación de rutas clave en UI/API, exportación de tarjeta HTML/PDF desde una OT cerrada y actualización de HANDOFF/VERIFICATION con evidencia. Sin merge de main ni producción.
+Trabajar primero con índice local y contratos deterministas. Conservar fuente, hash, revisión, estado de extracción, cobertura parcial, advertencias y `A_CONFIRMAR`. Sin cargar cantidades históricas como stock, sin datos reales en staging y sin merge de main ni producción.
 
 ## Fuentes y restricciones
 Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exclusivamente staging sintético y credenciales del `.runtime/staging/config.json`. No imprimir secretos ni copiarlos al diff. No tocar datos reales ni SPARE. Si aparece un defecto funcional, corregirlo en el slice mínimo necesario y volver a validar.
@@ -22,13 +22,15 @@ Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exc
 3. Revisar que las tarjetas A6 y A4 de staging no recorten texto, mantengan legibilidad y sigan exponiendo QR/estado correcto.
 4. Si aparece una desviación entre UI, API y documento exportado, registrarla con evidencia concreta antes de ampliar dominio.
 
-## Aceptación
-- ADMIN inicia sesión, navega, genera OT y verifica datos clave de staging.
-- TECHNICIAN reserva/consume materiales, completa tareas/checkpoints y deja una OT cerrada.
-- VIEWER entra en modo lectura y no puede ejecutar escrituras administrativas u operativas.
-- `/api/v1/version` y la UI revisada corresponden al mismo staging local.
-- Se exportan y revisan al menos una tarjeta A6 y una A4 desde staging; la A4 conserva cuatro tarjetas legibles.
-- La evidencia final registra URL, SHA, OT utilizada, roles ensayados, resultado y defectos abiertos si existieran.
+## Aceptación de ASTRA-005 completada
+- ADMIN, TECHNICIAN y VIEWER fueron probados en navegador sobre `b21b347`.
+- `OT-000006` quedó cerrada como `OPERATIVE` con tareas, material, controles y auditoría visibles.
+- A6 y A4 fueron descargados y revisados visualmente; A4 conserva cuatro tarjetas legibles.
+
+## Aceptación de ASTRA-006
+- Índice local reproducible y seguro.
+- Extracción parcial y OCR expresan estado, cobertura y advertencias.
+- Cola de revisión técnica separa candidato, evidencia y decisión humana.
 
 ## Evidencia de salida
 Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION.
