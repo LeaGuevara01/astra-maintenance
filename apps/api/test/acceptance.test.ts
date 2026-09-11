@@ -192,9 +192,9 @@ describe('closure, continuity and snapshot documents', () => {
     await mutate(admin, 'patch', `/orders/${order.id}/checkpoints/${critical.id}`, { result: 'FAIL' }).expect(200);
     const failure = await mutate(admin, 'post', `/orders/${order.id}/close`, { result: 'OPERATIVE' }).expect(422);
     expect(failure.body.error.code).toBe('CRITICAL_CHECKPOINT');
-    const closed = await mutate(admin, 'post', `/orders/${order.id}/close`, { result: 'NOT_OPERATIVE', notes: 'Frenos fallidos; equipo inmovilizado.' }).expect(200);
-    expect(closed.body.result).toBe('NOT_OPERATIVE');
-    expect((await db.asset.findUniqueOrThrow({ where: { id: order.asset.id } })).operatingStatus).toBe('NOT_OPERATIVE');
+    const blocked = await mutate(admin, 'post', `/orders/${order.id}/close`, { result: 'NOT_OPERATIVE', notes: 'Frenos fallidos; equipo inmovilizado.' }).expect(422);
+    expect(blocked.body.error.code).toBe('CRITICAL_CHECKPOINT');
+    expect((await db.workOrder.findUniqueOrThrow({ where: { id: order.id } })).status).toBe('OPEN');
   });
   it('does not allow performed tasks with materials that were never consumed', async () => {
     const admin = await login();

@@ -21,7 +21,7 @@ POST /orders/:id/reserve, Idempotency-Key -> Order (partial reservation allowed;
 POST /orders/:id/consume, Idempotency-Key, {materialId,quantity} -> Order (consumes own reservation first; prevents stealing reservations)
 PATCH /orders/:id/tasks/:taskId {status:PENDING|DONE|DEFERRED|NA,deferredReason?,deferredUntil?} -> Order
 PATCH /orders/:id/checkpoints/:checkpointId {result:PASS|FAIL|NA} -> Order; critical NA invalid.
-POST /orders/:id/close, Idempotency-Key, {result:OPERATIVE|OPERATIVE_WITH_NOTES|NOT_OPERATIVE,notes?} -> Order
+POST /orders/:id/close, Idempotency-Key, {result:OPERATIVE|OPERATIVE_WITH_NOTES|NOT_OPERATIVE,notes?} -> Order; any result is rejected with CRITICAL_CHECKPOINT while a critical checkpoint is PENDING or FAIL.
 GET /orders/:id/card?format=a6|a4 -> printable HTML, same snapshot on all four cards. Backend provides GET /orders/:id/pdf?format=a6|a4 -> PDF if possible; integrator can add PDF service.
 GET /audit -> Audit[] {id,createdAt,actorName,action,entityId,details}
 GET /version -> {version,commit,environment}
@@ -30,4 +30,3 @@ Root GET /health/live and /health/ready.
 Seed assets synthetic code AST-001 "Tractor de prueba", meter 600, and AST-002 "Equipo de apoyo", meter 1200. A single demonstrative plan with 300/600/900/1200 tasks, unknown PN A_CONFIRMAR, required materials, critical brake checkpoint. These are synthetic examples, not OEM recommendations.
 Accounts admin@astra.local, tecnico@astra.local, consulta@astra.local; passwords via SEED_ADMIN_PASSWORD / SEED_TECH_PASSWORD / SEED_VIEWER_PASSWORD (required to seed).
 Cookie can be non-Secure only development on loopback; deployment TLS via reverse proxy.
-

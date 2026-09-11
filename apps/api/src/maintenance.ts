@@ -151,10 +151,8 @@ export function closeOrder(db: PrismaClient, actor: Actor, orderId: string, key:
   return idempotent(db, `close:${actor.id}:${orderId}`, key, input, async tx => {
     const order = await lockOrder(tx, orderId);
     assert(!order.tasks.some(task => task.mandatory && task.status === 'PENDING'), 422, 'TASKS_PENDING', 'Resuelva o difiera explícitamente las tareas obligatorias.');
-    if (input.result !== 'NOT_OPERATIVE') {
-      assert(!order.checkpoints.some(c => c.critical && c.result !== 'PASS'), 422, 'CRITICAL_CHECKPOINT', 'No se puede liberar con un checkpoint crítico fallido o pendiente.');
-      assert(!order.tasks.some(t => t.blocking && t.status !== 'DONE'), 422, 'TASK_BLOCKING', 'La liberación requiere las tareas bloqueantes realizadas.');
-    }
+    assert(!order.checkpoints.some(c => c.critical && c.result !== 'PASS'), 422, 'CRITICAL_CHECKPOINT', 'No se puede cerrar con un checkpoint crítico fallido o pendiente.');
+    assert(!order.tasks.some(t => t.blocking && t.status !== 'DONE'), 422, 'TASK_BLOCKING', 'La liberación requiere las tareas bloqueantes realizadas.');
     if (input.result === 'OPERATIVE') assert(!order.tasks.some(t => t.status === 'DEFERRED'), 422, 'DEFERRED_TASKS', 'Las tareas diferidas requieren OPERATIVE_WITH_NOTES o NOT_OPERATIVE.');
     if (input.result !== 'OPERATIVE') assert(input.notes?.trim(), 422, 'CLOSURE_NOTES_REQUIRED', 'Documente las observaciones del cierre.');
     const needed = new Map<string, Prisma.Decimal>();
