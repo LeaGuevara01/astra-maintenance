@@ -1,5 +1,21 @@
 # Evidencia local del checkpoint
 
+## ASTRA-005 — verificación vigente, target `48f362ab86a2b1f9c404c1d337318d119b89c8fe`
+
+Fecha de ejecución: 2026-09-11 UTC. Rama local: `fix/ASTRA-005-e2e-target`, basada en `origin/main@91c1c2a`. No se hizo merge ni push remoto.
+
+- Verify limpio: `npm ci`/`-SkipInstall`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. Registro vigente: `.runtime/test/verification.json`, `dirty=false`, SHA `48f362ab86a2b1f9c404c1d337318d119b89c8fe`.
+- Staging sintético: `http://localhost:4380`; `Deploy-Staging.ps1` completó backup, imágenes API/web y readiness. `/api/v1/version` publica el SHA exacto `48f362a`.
+- E2E API sanitizado vigente: run `QA005-20260911025727`, OT `OT-000005`, ID `cmtwd8ise0006po0k5vj2yni8`. ADMIN/TECHNICIAN/VIEWER autenticaron; ADMIN creó activo y generó 600/645; TECHNICIAN repuso, reservó y consumió 1, completó 2 tareas y cerró `OPERATIVE`; VIEWER leyó la OT cerrada y no pudo escribir (`403 FORBIDDEN`).
+- Negativos: cierre prematuro `TASKS_PENDING`; crítico pendiente `CRITICAL_CHECKPOINT`; crítico `NA` `CRITICAL_NA`; `NOT_OPERATIVE` con crítico `FAIL` `CRITICAL_CHECKPOINT`; nueva clave postcierre `ORDER_CLOSED`; replay de cierre `200` sin duplicar efecto.
+- Documentos cerrados: A6/A4 HTTP 200. A6 una página 105×148 mm; A4 una página 210×297 mm con cuatro tarjetas. Texto, QR, snapshots, `A_CONFIRMAR` y límites visuales verificados con PyMuPDF. Hashes vigentes en `.runtime/qa-20260911/pdf-checks-ot000005.json`.
+- Persistencia validada: `CLOSED/OPERATIVE`, tareas `DONE`, checkpoints `PASS`, material usado 1, reservado 0, faltante 0 y auditoría `ORDER_CLOSED`.
+- UI: login y pantalla de acceso cargaron en Edge; recorrido UI autenticado completo permanece `NOT_RUN` para no imprimir ni transmitir las contraseñas sintéticas.
+
+### Corrida anterior conservada
+
+La corrida `QA005-20260911022232` / `OT-000004` sobre `a3c2349` permanece como evidencia histórica; no representa el runtime vigente.
+
 Fecha: 2026-09-07 UTC.
 - Backend worktree: tres migraciones aplicadas; 21 tests PostgreSQL pasaron.
 - Repositorio integrado: scripts/Verify.ps1 -SkipInstall pasó migraciones en base nueva, typecheck de API/web, 21 tests y build sobre el commit limpio `2ef666a`.

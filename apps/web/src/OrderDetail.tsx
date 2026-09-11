@@ -17,6 +17,7 @@ export default function OrderDetail({ id, role, onBack, onChanged }: { id: strin
   async function mutate(route: string, method: string, payload?: unknown, idempotent = false) {
     const result = await api<Order>(`/orders/${id}${route}`, method, payload, idempotent);
     setOrder(result);
+    await load();
     await onChanged();
   }
   async function download(format: 'a6' | 'a4') {
