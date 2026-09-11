@@ -17,6 +17,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "npm run seed --workspace @astra/api",
+    "documents:normalize": "tsx tools/normalize-document-index.ts",
     "dev": "concurrently --kill-others \"npm run dev --workspace @astra/api\" \"npm run dev --workspace @astra/web\""
   },
   "devDependencies": {

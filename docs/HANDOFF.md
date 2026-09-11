@@ -42,7 +42,7 @@ El archivo CONTINUAR_ASTRA.md en outputs de la tarea tiene comandos concretos y 
 2. Registrar y ensayar el schedule de backup diario con `Register-Backup.ps1` si ese entorno va a quedar persistente.
 3. Empaquetar/instalar plugin astra-engineering después del piloto verificado; todavía no está creado.
 4. Revisar la salida de CI de GitHub. Existe una limitación real para proteger main bajo el plan privado actual.
-5. Iniciar ASTRA-006: normalización del inventario documental, extracción parcial, OCR y cola de revisión técnica.
+5. ASTRA-006 implementado en la rama `feat/ASTRA-006-document-intelligence`: normalización local, extracción parcial, cola OCR y cola de revisión humana conservadora. Ver `docs/ASTRA-006.md`; falta revisión humana del corpus y el dry-run de importación de ASTRA-007.
 6. Aplicar la capa de coordinación a las tareas de API, frontend y operaciones,
    respetando la asignación de rutas y el protocolo de handoff.
 

@@ -1,6 +1,6 @@
 # ASTRA-006 — Inteligencia documental conservadora
 
-Estado: ASTRA-005 cerrado en staging; listo para planificación de ASTRA-006.
+Estado: ASTRA-005 cerrado en staging; ASTRA-006 implementado como slice local determinista en la rama `feat/ASTRA-006-document-intelligence`.
 
 ## Objetivo
 Normalizar el inventario documental local y registrar extracción parcial, OCR y cola de revisión técnica sin convertir documentos o similitud en equivalencia técnica.
@@ -33,9 +33,9 @@ Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exc
 - Cola de revisión técnica separa candidato, evidencia y decisión humana.
 
 ## Evidencia de salida
-Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION.
+Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION. Para ASTRA-006 se agrega `docs/ASTRA-006.md` y la evidencia local se genera sólo debajo de `.runtime`.
 
 ## Tareas siguientes
-ASTRA-006: normalizar inventario local y estado de extracción parcial, OCR y cola de revisión técnica.
+ASTRA-007: contratos de procedencia e importación dry-run de candidatos; no cargar cantidades históricas como stock.
 ASTRA-007: contratos de procedencia e importación dry-run de candidatos; no cargar cantidades históricas como stock.
 ASTRA-008: validar cinco skills en una sesión nueva y extraer plugin astra-engineering después de demostrar el piloto.

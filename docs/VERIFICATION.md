@@ -2,6 +2,15 @@
 
 ## ASTRA-005 — verificación vigente, target `b21b347b80a5eeac3df13ebaf69a394f05621f41`
 
+## ASTRA-006 — verificación local de inteligencia documental
+
+- Rama: `feat/ASTRA-006-document-intelligence`; la rama `main` no fue mergeada ni desplegada.
+- `npm run typecheck --workspace @astra/api`: pasó.
+- `npx vitest run apps/api/test/document-intelligence.test.ts --pool=threads --maxWorkers=1 --reporter=verbose`: 3/3 pasó.
+- `npm run documents:normalize -- --input .runtime/sources/index.json --output .runtime/sources/normalized`: pasó sobre el inventario local ignorado; 1.110 fuentes, 1.080 hashes únicos, 142 pendientes OCR y 1.080 pendientes de revisión.
+- La cola conserva evidencia y advertencias, mantiene `A_CONFIRMAR` y no modifica originales. No se ejecutó OCR ni se afirmó equivalencia técnica.
+- El primer intento bajo sandbox falló con `spawn EPERM`; la ejecución focalizada elevada pasó. No se repite como fallo de producto.
+
 Fecha de ejecución: 2026-09-11 UTC. Rama local: `main`, limpia y alineada con `origin/main`.
 
 - Verify histórico vigente: `npm ci`/`-SkipInstall`, Prisma generate/migrate sobre `astra_test`, typecheck API/web, 21/21 tests de aceptación y build API/web. El código funcional entre `48f362a` y `b21b347` no cambió; el merge actualizó documentación y dejó `main` limpio.
