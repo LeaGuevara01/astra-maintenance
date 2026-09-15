@@ -1,3 +1,5 @@
+> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
+
 # Operaciones del piloto — estado del checkpoint
 
 Los scripts de despliegue están escritos y el piloto fue verificado en staging sintético. Este checkpoint no constituye una release de producción ni autoriza operar datos reales.

@@ -1,3 +1,4 @@
+import { documentReviewRouter } from './document-review.js';
 import express from 'express';
 import { createHash } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
@@ -43,6 +44,7 @@ export function createApp(db: PrismaClient, config: Config = readConfig()) {
   api.use(authentication.requireSession, authentication.requireCsrf);
   api.get('/auth/me', (req, res) => res.json({ user: req.actor, csrfToken: req.csrfToken }));
   api.post('/auth/logout', authentication.logout);
+  api.use('/document-candidates', documentReviewRouter(db));
   api.get('/dashboard', async (_req, res) => {
     const [assets, orders, inventory] = await Promise.all([db.asset.count(), db.workOrder.findMany({ where: { status: 'OPEN' }, include: { asset: true } }), db.part.findMany()]);
     res.json({ assets, openOrders: orders.length, overdue: orders.filter(o => o.asset.meter > o.targetMeter).length, lowStock: inventory.filter(p => p.onHand.minus(p.reserved).lessThanOrEqualTo(1)).length });

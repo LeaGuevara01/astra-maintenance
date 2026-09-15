@@ -30,3 +30,11 @@ Root GET /health/live and /health/ready.
 Seed assets synthetic code AST-001 "Tractor de prueba", meter 600, and AST-002 "Equipo de apoyo", meter 1200. A single demonstrative plan with 300/600/900/1200 tasks, unknown PN A_CONFIRMAR, required materials, critical brake checkpoint. These are synthetic examples, not OEM recommendations.
 Accounts admin@astra.local, tecnico@astra.local, consulta@astra.local; passwords via SEED_ADMIN_PASSWORD / SEED_TECH_PASSWORD / SEED_VIEWER_PASSWORD (required to seed).
 Cookie can be non-Secure only development on loopback; deployment TLS via reverse proxy.
+
+## Revisión documental persistente
+
+GET /document-candidates: últimos 200 candidatos con revisión de fuente e historial de decisiones, accesible a los tres roles.
+POST /document-candidates (ADMIN, Idempotency-Key): sourceId, title, sha256 (64 hex minúsculas), code, name, partNumber (default A_CONFIRMAR), unit, locator, applicability. Crea candidato y revisión de fuente inmutable; un nuevo hash representa otra revisión y no hereda aprobaciones.
+POST /document-candidates/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): version, decision=A_CONFIRMAR|VALIDADO|RECHAZADO, reason obligatorio. Incremento optimista de versión; 409 REVIEW_STALE exige recargar. Historial append-only, actor y fecha.
+POST /document-candidates/dry-run (tres roles, CSRF): ids únicos, 1–200. Compara candidatos persistidos con Part dentro de lectura consistente. Devuelve apply:false y decisiones/razones/procedencia/stockEffect:NONE.
+No se sirven rutas físicas, no se suben originales, no se aplica catálogo ni se modifica stock. La pantalla permite registrar, decidir, recargar y comparar; no contiene fixtures.

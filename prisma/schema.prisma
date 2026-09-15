@@ -210,3 +210,40 @@ model Idempotency {
   createdAt   DateTime @default(now())
   @@unique([scope, key])
 }
+model DocumentRevision {
+  id String @id @default(cuid())
+  sourceId String
+  title String
+  sha256 String
+  createdAt DateTime @default(now())
+  candidates DocumentCandidate[]
+  @@unique([sourceId, sha256])
+}
+
+model DocumentCandidate {
+  id String @id @default(cuid())
+  revisionId String
+  revision DocumentRevision @relation(fields: [revisionId], references: [id])
+  code String
+  name String
+  partNumber String
+  unit String
+  locator String
+  applicability String
+  version Int @default(0)
+  createdAt DateTime @default(now())
+  reviews DocumentReview[]
+  @@index([createdAt, id])
+}
+
+model DocumentReview {
+  id String @id @default(cuid())
+  candidateId String
+  candidate DocumentCandidate @relation(fields: [candidateId], references: [id])
+  version Int
+  decision String
+  reason String
+  actorId String
+  createdAt DateTime @default(now())
+  @@unique([candidateId, version])
+}

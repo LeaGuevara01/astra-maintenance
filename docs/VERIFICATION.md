@@ -45,3 +45,13 @@ No se requiere repetir la suite, el circuito de roles, PDF ni despliegue por est
 - Las pruebas dirigidas de los cuatro defectos ya fueron completadas según la sección anterior.
 - CI remoto del nuevo commit, si el repositorio lo ejecuta, es evidencia separada de las comprobaciones locales.
 - Backup programado y acceso LAN/TLS solo si se decide habilitar operación persistente o LAN.
+
+## Revisión persistente — 2026-09-15
+
+Prisma generate, migración de upgrade en astra_test, 42 pruebas PostgreSQL/documentales, typecheck API/web y build API/web aprobados. Caso nuevo: roles, creación/revisión idempotente, persistencia tras GET, rechazo stale, comparación real, stock intacto y trigger de historial.
+
+Verify.ps1 se detuvo al reasignar puertos (No free port available); se reutilizó el contexto astra_test ya operativo en 50379 mediante Common.ps1 y se ejecutaron db:migrate, test y build directamente. No se falsificó verification.json ni se ejecutó contra staging. Pendientes: instalación en base vacía separada, prueba browser dirigida y despliegue.
+
+Browser dirigido aprobado en Edge sobre http://localhost:4392/documents y base astra_test: login ADMIN, candidato existente, decisión A_CONFIRMAR con motivo, recarga completa, historial conservado y comparación UNCHANGED/stock NONE. Preview nativo de esta implementación, no staging ni certificación de los tres roles.
+
+Migración desde base vacía aprobada: test_document_review_fresh_20260915, cuatro migraciones aplicadas. Base aislada conservada. El conflicto de puertos del wrapper se corrigió seleccionando puertos libres en el contexto local de test, sin modificar scripts ni staging.

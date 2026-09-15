@@ -1,3 +1,5 @@
+> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
+
 # ASTRA API
 
 Express 5, TypeScript, Prisma 6, PostgreSQL. The pilot uses synthetic maintenance data and does not supply OEM recommendations. Public OpenAPI: `GET /api/v1/openapi.json`.

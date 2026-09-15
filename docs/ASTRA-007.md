@@ -1,3 +1,12 @@
+> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
+
+## Flujo documental actual
+
+Inteligencia documental permite registrar candidatos (ADMIN), guardar decisiones con motivo (ADMIN/TECHNICIAN), consultar historial y comparar contra el catálogo (incluido VIEWER). Las decisiones sobreviven a recarga. Fuente+SHA identifica la revisión; un cambio requiere nueva evidencia. No se aplica catálogo ni stock. No hay datos hardcodeados de revisión.
+
+## Antecedentes históricos
+
+
 # ASTRA-007 — Dry-run de candidatos con procedencia
 
 Este slice define una comparación determinista y no mutante para candidatos de catálogo. No agrega stock, no crea registros de producción y no convierte una similitud o equivalencia declarada en equivalencia técnica validada.

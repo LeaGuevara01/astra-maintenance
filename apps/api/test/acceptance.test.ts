@@ -300,3 +300,34 @@ describe('closure, continuity and snapshot documents', () => {
     expect(() => readConfig({ APP_ENVIRONMENT: 'production', APP_ORIGIN: 'http://localhost:4380', COOKIE_SECURE: 'false' })).toThrow();
   });
 });
+
+describe('persistent document review', () => {
+  it('persists reviews, rejects stale decisions, compares catalog and never changes stock', async () => {
+    const admin = await login(), tech = await login('tecnico'), viewer = await login('consulta');
+    const before = await db.part.findMany({ orderBy: { code: 'asc' } });
+    const input = { sourceId: 'TEST-DOC', title: 'Documento sintético', sha256: 'a'.repeat(64), code: before[0].code, name: before[0].name, partNumber: before[0].partNumber, unit: before[0].unit, locator: 'page:1', applicability: 'Sólo fixture sintética' };
+    await mutate(viewer, 'post', '/document-candidates', input).expect(403);
+    await mutate(tech, 'post', '/document-candidates', input).expect(403);
+    const key = randomUUID();
+    const created = await mutate(admin, 'post', '/document-candidates', input, key).expect(201);
+    expect((await mutate(admin, 'post', '/document-candidates', input, key).expect(201)).body.id).toBe(created.body.id);
+    const route = `/document-candidates/${created.body.id}/reviews`;
+    await mutate(viewer, 'post', route, {version:0,decision:'VALIDADO',reason:'Test'}).expect(403);
+    await mutate(tech, 'post', route, {version:0,decision:'VALIDADO',reason:''}).expect(400);
+    const reviewKey = randomUUID();
+    const decision = {version:0,decision:'RECHAZADO',reason:'Fuente insuficiente'};
+    await mutate(tech, 'post', route, decision, reviewKey).expect(200);
+    await mutate(tech, 'post', route, decision, reviewKey).expect(200);
+    await mutate(admin, 'post', route, {version:0,decision:'VALIDADO',reason:'Obsoleto'}).expect(409);
+    const persisted = (await viewer.agent.get('/api/v1/document-candidates').expect(200)).body.find((r:any)=>r.id===created.body.id);
+    expect(persisted.reviews).toHaveLength(1);
+    expect(persisted.reviews[0].decision).toBe('RECHAZADO');
+    const report = await mutate(viewer,'post','/document-candidates/dry-run',{ids:[created.body.id]}).expect(200);
+    expect(report.body).toMatchObject({apply:false,summary:{rejected:1}});
+    await mutate(tech,'post',route,{version:1,decision:'VALIDADO',reason:'Revisado con evidencia'}).expect(200);
+    expect((await mutate(viewer,'post','/document-candidates/dry-run',{ids:[created.body.id]}).expect(200)).body.results[0].decision).toBe('UNCHANGED');
+    expect(await db.part.findMany({orderBy:{code:'asc'}})).toEqual(before);
+    expect(await db.stockMovement.count()).toBe(0);
+    await expect(db.documentReview.updateMany({data:{reason:'alterado'}})).rejects.toThrow();
+  });
+});
