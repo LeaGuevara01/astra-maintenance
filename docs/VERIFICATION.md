@@ -50,8 +50,16 @@ No se requiere repetir la suite, el circuito de roles, PDF ni despliegue por est
 
 Prisma generate, migración de upgrade en astra_test, 42 pruebas PostgreSQL/documentales, typecheck API/web y build API/web aprobados. Caso nuevo: roles, creación/revisión idempotente, persistencia tras GET, rechazo stale, comparación real, stock intacto y trigger de historial.
 
-Verify.ps1 se detuvo al reasignar puertos (No free port available); se reutilizó el contexto astra_test ya operativo en 50379 mediante Common.ps1 y se ejecutaron db:migrate, test y build directamente. No se falsificó verification.json ni se ejecutó contra staging. Pendientes: instalación en base vacía separada, prueba browser dirigida y despliegue.
+Verify.ps1 se detuvo al reasignar puertos (No free port available); se reutilizó el contexto astra_test ya operativo en 50379 mediante Common.ps1 y se ejecutaron db:migrate, test y build directamente. No se falsificó verification.json ni se ejecutó contra staging. Estos pendientes quedaron completados según el cierre siguiente.
 
 Browser dirigido aprobado en Edge sobre http://localhost:4392/documents y base astra_test: login ADMIN, candidato existente, decisión A_CONFIRMAR con motivo, recarga completa, historial conservado y comparación UNCHANGED/stock NONE. Preview nativo de esta implementación, no staging ni certificación de los tres roles.
 
 Migración desde base vacía aprobada: test_document_review_fresh_20260915, cuatro migraciones aplicadas. Base aislada conservada. El conflicto de puertos del wrapper se corrigió seleccionando puertos libres en el contexto local de test, sin modificar scripts ni staging.
+
+## Cierre del incremento persistente
+
+Verify.ps1 -SkipInstall pasó sobre el commit limpio 52b1220fd2d304d097d05673780461db2b014784: migración, 42 pruebas, typecheck y build. Deploy-Staging.ps1 finalizó con backup previo, migración aditiva y despliegue de ese SHA. Release registrada 2026-09-15T12:57:28Z. Health ready y /api/v1/version comprobados en vivo. El bloqueo EPERM inicial de Prisma se resolvió cerrando el proceso nativo de prueba que mantenía la DLL abierta; no se modificó la dependencia.
+
+La prueba dirigida de navegador se hizo sobre el mismo código funcional en el entorno aislado antes del despliegue. No se repitió el circuito completo de roles. El commit posterior sólo cierra documentación; verification.json conserva el SHA efectivamente ejecutado.
+
+Fuera de este repositorio se actualizaron cabeceras de planes/checkpoints de outputs y la cláusula P06 de PRODUCT/API y el plan abierto en el checkout in. Se preservaron sus demás cambios locales; no se incluyó ese árbol en el push del main principal.
