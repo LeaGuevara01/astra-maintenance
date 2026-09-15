@@ -1,41 +1,31 @@
-# ASTRA-006 — Inteligencia documental conservadora
+# Próximas tareas de ASTRA Maintenance
 
-Estado: ASTRA-005 cerrado en staging; ASTRA-006 implementado y desplegado en staging sintético como slice local determinista en `32a5972` de la rama `feat/ASTRA-006-document-intelligence`.
+Actualizado: 2026-09-15. Base funcional integrada: 3b2223d. Estado e identidad en HANDOFF.md; evidencia en VERIFICATION.md.
 
-## Objetivo
-Normalizar el inventario documental local y registrar extracción parcial, OCR y cola de revisión técnica sin convertir documentos o similitud en equivalencia técnica.
+## Prioridad 1 — Corregir la comparación y cobertura documental
 
-## Alcance
-Trabajar primero con índice local y contratos deterministas. Conservar fuente, hash, revisión, estado de extracción, cobertura parcial, advertencias y `A_CONFIRMAR`. Sin cargar cantidades históricas como stock, sin datos reales en staging y sin merge de main ni producción.
+Antes de habilitar aplicación al catálogo:
 
-## Fuentes y restricciones
-Leer AGENTS, PRODUCT, API-CONTRACT, HANDOFF, OPERATIONS y VERIFICATION. Usar exclusivamente staging sintético y credenciales del `.runtime/staging/config.json`. No imprimir secretos ni copiarlos al diff. No tocar datos reales ni SPARE. Si aparece un defecto funcional, corregirlo en el slice mínimo necesario y volver a validar.
+1. Respetar confidence=RECHAZADO: un candidato rechazado no debe producir ADD/UPDATE.
+2. Preservar un número de pieza conocido cuando el candidato carece de ese dato; no proponer reemplazarlo por A_CONFIRMAR.
+3. Detectar candidatos duplicados o incompatibles para el mismo código dentro de un lote.
+4. Corregir cobertura OCR: ausencia de pagesNeedingOCR no demuestra que todas las páginas tengan texto; representar cobertura desconocida o pendiente de forma explícita.
 
-## Preparación ya disponible
-- Staging local activo en `http://localhost:4380` con commit `2ef666ae0721208501d5664a0ce5e8d7f37d7da0`.
-- Verify, backup/restore aislado, rollback con preservación de datos y dos worktrees completos en paralelo ya quedaron ensayados.
-- `tools/verify-staging.mjs` existe como helper local no versionado; usarlo sólo si aporta evidencia y sin incorporarlo por defecto al commit.
+Rutas: apps/api/src/candidate-import.ts, apps/api/src/document-intelligence.ts y sus pruebas. Aceptación: pruebas dirigidas de estos casos, sin stockEffect distinto de NONE ni aplicación persistente. No requiere repetir el recorrido completo de roles.
 
-## Riesgos a resolver
-1. Comprobar que ADMIN, TECHNICIAN y VIEWER puedan completar su recorrido previsto sin errores de sesión, CSRF, permisos o estado inconsistente.
-2. Confirmar que el circuito visible `activo → plan → OT → reserva/consumo → checkpoints → cierre` se corresponde con la API y deja una OT cerrada utilizable para exportación.
-3. Revisar que las tarjetas A6 y A4 de staging no recorten texto, mantengan legibilidad y sigan exponiendo QR/estado correcto.
-4. Si aparece una desviación entre UI, API y documento exportado, registrarla con evidencia concreta antes de ampliar dominio.
+## Prioridad 2 — Revisión documental con evidencia
 
-## Aceptación de ASTRA-005 completada
-- ADMIN, TECHNICIAN y VIEWER fueron probados en navegador sobre `b21b347`.
-- `OT-000006` quedó cerrada como `OPERATIVE` con tareas, material, controles y auditoría visibles.
-- A6 y A4 fueron descargados y revisados visualmente; A4 conserva cuatro tarjetas legibles.
+- Continuar la revisión humana descrita en ASTRA-007-REVIEW.md; completar evidencia visual/OCR, variante y sustituciones cuando corresponda.
+- Mantener la pantalla sintética identificada como tal y sus decisiones sin persistencia hasta definir el contrato de API/aplicación.
+- Diseñar aplicación transaccional e idempotente solo después de resolver los defectos y aprobar las fuentes. No cargar cantidades históricas como stock.
 
-## Aceptación de ASTRA-006
-- Índice local reproducible y seguro.
-- Extracción parcial y OCR expresan estado, cobertura y advertencias.
-- Cola de revisión técnica separa candidato, evidencia y decisión humana.
+## Posterior, según necesidad operativa
 
-## Evidencia de salida
-Commit o SHA inspeccionado, URL de staging, ID de OT cerrada usada para exportación, notas del recorrido por rol, resultado de la revisión A6/A4 y actualización de HANDOFF/VERIFICATION. Para ASTRA-006 se agrega `docs/ASTRA-006.md` y la evidencia local se genera sólo debajo de `.runtime`.
+- Programar y ensayar backup diario si el entorno quedará persistente.
+- Validar LAN/TLS si se habilita acceso fuera de loopback.
+- Revisar CI/controles de GitHub y empaquetado del plugin de ingeniería cuando aporten valor al siguiente trabajo.
+- Ampliar planes por unidad/configuración y recursos conforme a contratos y evidencia técnica; no importar indiscriminadamente otras ramas/worktrees.
 
-## Tareas siguientes
-ASTRA-007: revisar el dry-run de candidatos y sus fuentes con decisión humana; no aplicar ni cargar cantidades históricas como stock hasta cerrar esa revisión.
-ASTRA-008: definir, sólo después de la revisión, la aplicación transaccional/idempotente y la API versionada; mantener `A_CONFIRMAR`.
-ASTRA-009: validar cinco skills en una sesión nueva y extraer plugin astra-engineering después de demostrar el piloto.
+## Regla de continuidad
+
+Trabajar desde main actualizado. Reutilizar resultados existentes vinculados a su SHA. Ejecutar verificaciones proporcionales al cambio; no convertir recorridos de roles o PDF ya cubiertos en un requisito recurrente. Actualizar estos tres documentos sin acumular secciones contradictorias de estado vigente.
