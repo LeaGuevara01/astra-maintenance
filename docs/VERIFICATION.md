@@ -63,3 +63,6 @@ Verify.ps1 -SkipInstall pasó sobre el commit limpio 52b1220fd2d304d097d05673780
 La prueba dirigida de navegador se hizo sobre el mismo código funcional en el entorno aislado antes del despliegue. No se repitió el circuito completo de roles. El commit posterior sólo cierra documentación; verification.json conserva el SHA efectivamente ejecutado.
 
 Fuera de este repositorio se actualizaron cabeceras de planes/checkpoints de outputs y la cláusula P06 de PRODUCT/API y el plan abierto en el checkout in. Se preservaron sus demás cambios locales; no se incluyó ese árbol en el push del main principal.
+
+## Paginación documental — 2026-09-15
+43 pruebas aprobadas sobre astra_test, typecheck API/web y build aprobados. Cobertura nueva: páginas con timestamp igual, alta posterior sin duplicación de continuación, límites/cursor inválidos y compatibilidad del endpoint anterior. Sin migraciones. La prueba browser de paginación no se ejecutó en este incremento.

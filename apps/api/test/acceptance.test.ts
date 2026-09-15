@@ -42,7 +42,7 @@ async function finish(session: Session, order: any) {
 
 beforeAll(async () => { await db.$connect(); });
 beforeEach(async () => {
-  await db.$executeRawUnsafe('TRUNCATE TABLE "DeferredLink", "OrderTask", "OrderMaterial", "Checkpoint", "StockMovement", "Audit", "Idempotency", "WorkOrder", "Reading", "Asset", "PlanTask", "Plan", "Part", "Session", "User" RESTART IDENTITY CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE TABLE "DocumentReview", "DocumentCandidate", "DocumentRevision", "DeferredLink", "OrderTask", "OrderMaterial", "Checkpoint", "StockMovement", "Audit", "Idempotency", "WorkOrder", "Reading", "Asset", "PlanTask", "Plan", "Part", "Session", "User" RESTART IDENTITY CASCADE');
   await seed(db, credentials);
 });
 afterAll(() => db.$disconnect());
@@ -329,5 +329,24 @@ describe('persistent document review', () => {
     expect(await db.part.findMany({orderBy:{code:'asc'}})).toEqual(before);
     expect(await db.stockMovement.count()).toBe(0);
     await expect(db.documentReview.updateMany({data:{reason:'alterado'}})).rejects.toThrow();
+  });
+});
+
+describe('document candidate pagination', () => {
+  it('traverses tied timestamps without duplicates and excludes newer inserts from continuation', async () => {
+    const session = await login();
+    const revision = await db.documentRevision.create({data:{sourceId:randomUUID(),title:'Pagination fixture',sha256:'b'.repeat(64)}});
+    const date = new Date('2100-01-01T00:00:00Z');
+    for (const id of ['page-a','page-b','page-c']) await db.documentCandidate.create({data:{id,revisionId:revision.id,code:id,name:id,partNumber:'A_CONFIRMAR',unit:'u',locator:'page:1',applicability:'synthetic',createdAt:date}});
+    const first = await session.agent.get('/api/v1/document-candidates/page?limit=2').expect(200);
+    expect(first.body.items.map((r:any)=>r.id)).toEqual(['page-a','page-b']);
+    expect(first.body.nextCursor).toBe('page-b');
+    await db.documentCandidate.create({data:{id:'page-new',revisionId:revision.id,code:'new',name:'new',partNumber:'A_CONFIRMAR',unit:'u',locator:'page:1',applicability:'synthetic',createdAt:new Date('2101-01-01T00:00:00Z')}});
+    const second = await session.agent.get('/api/v1/document-candidates/page?limit=2&cursor=page-b').expect(200);
+    expect(second.body.items[0].id).toBe('page-c');
+    expect(second.body.items.map((r:any)=>r.id)).not.toContain('page-new');
+    await session.agent.get('/api/v1/document-candidates/page?limit=101').expect(400);
+    await session.agent.get('/api/v1/document-candidates/page?cursor=missing').expect(400);
+    expect(Array.isArray((await session.agent.get('/api/v1/document-candidates').expect(200)).body)).toBe(true);
   });
 });

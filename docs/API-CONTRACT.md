@@ -38,3 +38,7 @@ POST /document-candidates (ADMIN, Idempotency-Key): sourceId, title, sha256 (64 
 POST /document-candidates/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): version, decision=A_CONFIRMAR|VALIDADO|RECHAZADO, reason obligatorio. Incremento optimista de versión; 409 REVIEW_STALE exige recargar. Historial append-only, actor y fecha.
 POST /document-candidates/dry-run (tres roles, CSRF): ids únicos, 1–200. Compara candidatos persistidos con Part dentro de lectura consistente. Devuelve apply:false y decisiones/razones/procedencia/stockEffect:NONE.
 No se sirven rutas físicas, no se suben originales, no se aplica catálogo ni se modifica stock. La pantalla permite registrar, decidir, recargar y comparar; no contiene fixtures.
+
+## Paginación documental
+
+GET /document-candidates/page?limit=25&cursor=<candidateId>: tres roles autenticados. limit entero 1–100; cursor opcional válido. Respuesta {items,nextCursor}; orden createdAt descendente/id ascendente. Cursor delimita mediante fecha/id del candidato; nuevas altas anteriores al cursor no duplican páginas posteriores. Cursor inexistente: 400 INVALID_CURSOR. El GET anterior conserva su respuesta array para compatibilidad. La UI navega páginas de 25 y compara únicamente el lote visible.
