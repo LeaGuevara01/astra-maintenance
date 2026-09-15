@@ -73,6 +73,11 @@ function validProvenance(provenance: CandidateProvenance): string[] {
  */
 export function dryRunCandidateImport(candidates: PartCandidate[], existing: ExistingPart[]): CandidateDryRun {
   const byCode = new Map(existing.map(part => [normalize(part.code), part]));
+  const codeCounts = new Map<string, number>();
+  for (const candidate of candidates) {
+    const code = normalize(candidate.code);
+    codeCounts.set(code, (codeCounts.get(code) ?? 0) + 1);
+  }
   const results = candidates.map(candidate => {
     const proposed = {
       code: candidate.code.trim(),
@@ -84,6 +89,9 @@ export function dryRunCandidateImport(candidates: PartCandidate[], existing: Exi
     const provenanceErrors = validProvenance(candidate.provenance);
     const current = byCode.get(normalize(candidate.code));
     reasons.push(...provenanceErrors);
+    if (candidate.confidence === 'RECHAZADO') reasons.push('HUMAN_REJECTED');
+    if ((codeCounts.get(normalize(candidate.code)) ?? 0) > 1) reasons.push('DUPLICATE_CODE_IN_BATCH');
+    if (current && normalize(proposed.partNumber) === 'A_CONFIRMAR') proposed.partNumber = current.partNumber;
     if (!proposed.code) reasons.push('CODE_REQUIRED');
     if (!proposed.name) reasons.push('NAME_REQUIRED');
     if (!proposed.unit) reasons.push('UNIT_REQUIRED');
@@ -92,9 +100,9 @@ export function dryRunCandidateImport(candidates: PartCandidate[], existing: Exi
     if (current && current.partNumber !== 'A_CONFIRMAR' && proposed.partNumber !== 'A_CONFIRMAR' && current.partNumber !== proposed.partNumber) reasons.push('OEM_PART_NUMBER_CONFLICT');
     const equivalence: CandidateResult['equivalence'] = candidate.equivalenceOf ? 'UNVALIDATED' : 'NONE';
     if (equivalence === 'UNVALIDATED') reasons.push('EQUIVALENCE_REQUIRES_HUMAN_VALIDATION');
-    const decision: CandidateDecision = reasons.some(reason => ['SOURCE_ID_REQUIRED', 'SOURCE_LOCATOR_REQUIRED', 'CODE_REQUIRED', 'NAME_REQUIRED', 'UNIT_REQUIRED', 'UNIT_INCOMPATIBLE', 'HISTORICAL_QUANTITY_INVALID'].includes(reason))
+    const decision: CandidateDecision = reasons.some(reason => ['HUMAN_REJECTED', 'SOURCE_ID_REQUIRED', 'SOURCE_LOCATOR_REQUIRED', 'CODE_REQUIRED', 'NAME_REQUIRED', 'UNIT_REQUIRED', 'UNIT_INCOMPATIBLE', 'HISTORICAL_QUANTITY_INVALID'].includes(reason))
       ? 'REJECTED'
-      : reasons.includes('OEM_PART_NUMBER_CONFLICT') ? 'CONFLICT'
+      : reasons.some(reason => ['OEM_PART_NUMBER_CONFLICT', 'DUPLICATE_CODE_IN_BATCH'].includes(reason)) ? 'CONFLICT'
       : current ? (current.name === proposed.name && current.partNumber === proposed.partNumber && normalize(current.unit) === normalize(proposed.unit) ? 'UNCHANGED' : 'UPDATE')
       : 'ADD';
     return { candidateId: candidate.candidateId, decision, reasons, provenance: candidate.provenance, proposed, stockEffect: 'NONE' as const, equivalence, fingerprint: fingerprint(candidate) };

@@ -2,7 +2,7 @@
 
 Actualizado: 2026-09-15. Este archivo separa evidencia ejecutada de pendientes. El historial detallado anterior permanece en Git.
 
-## Base funcional actual
+## Base anterior y staging comprobado
 
 SHA: 3b2223de05f4a514ca4c664cefa81019373c3974.
 
@@ -25,7 +25,16 @@ El registro de pruebas fue leído, no regenerado en esta consolidación. No se a
 
 Estas evidencias conservan su fecha y alcance. No constituyen una nueva ejecución sobre otro SHA.
 
-## Consolidación documental
+## Correcciones documentales — 2026-09-15
+
+- Rechazo humano tiene prioridad; número de pieza conocido se conserva ante valores ausentes o A_CONFIRMAR.
+- Todos los candidatos con código repetido (normalizado) quedan bloqueados, sin depender del orden del lote.
+- Cobertura sin evidencia por página queda null con COBERTURA_DESCONOCIDA; la cola OCR indica que falta determinar las páginas. Evidencia inválida no produce porcentaje.
+- Ejecutado: npx vitest run apps/api/test/candidate-import.test.ts apps/api/test/document-intelligence.test.ts --maxWorkers=1: 20/20 pruebas aprobadas.
+- Ejecutado: npm run typecheck: API y web aprobados. git diff --check aprobado.
+- Sin escrituras de stock, base de datos ni corpus. No se ejecutaron suite PostgreSQL, build ni redespliegue; verification.json conserva su SHA histórico.
+
+## Consolidación documental anterior
 
 Se unifican HANDOFF.md, VERIFICATION.md y NEXT-TASK.md sin modificar código funcional, dependencias ni datos. La comprobación pertinente es revisar el diff, verificar ausencia de errores de whitespace y confirmar main local/remoto en el mismo SHA tras el push. El resultado final de identidad se informa al cerrar la tarea.
 
@@ -33,6 +42,6 @@ No se requiere repetir la suite, el circuito de roles, PDF ni despliegue por est
 
 ## Pendientes de verificación
 
-- Pruebas dirigidas para los cuatro defectos documentales descritos en NEXT-TASK.md cuando se implementen sus correcciones.
+- Las pruebas dirigidas de los cuatro defectos ya fueron completadas según la sección anterior.
 - CI remoto del nuevo commit, si el repositorio lo ejecuta, es evidencia separada de las comprobaciones locales.
 - Backup programado y acceso LAN/TLS solo si se decide habilitar operación persistente o LAN.

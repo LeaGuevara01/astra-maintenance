@@ -33,3 +33,31 @@ describe('candidate import dry-run', () => {
     expect(existing[0]).toEqual({ code: 'FLT-01', name: 'Filtro de aceite', partNumber: 'A_CONFIRMAR', unit: 'unidad' });
   });
 });
+
+describe('document candidate regressions', () => {
+  const existing = [{ code: 'FLT-01', name: 'Filtro de aceite', partNumber: 'OEM-123', unit: 'unidad' }];
+  it('honors human rejection for new and existing parts', () => {
+    for (const catalog of [[], existing]) {
+      expect(dryRunCandidateImport([candidate({ confidence: 'RECHAZADO' })], catalog).results[0])
+        .toMatchObject({ decision: 'REJECTED', reasons: expect.arrayContaining(['HUMAN_REJECTED']), stockEffect: 'NONE' });
+    }
+  });
+  it.each([undefined, '', '  ', 'A_CONFIRMAR'])('preserves known part number for missing value %s', partNumber => {
+    const result = dryRunCandidateImport([candidate({ partNumber })], existing);
+    expect(result.results[0]).toMatchObject({ decision: 'UNCHANGED', proposed: { partNumber: 'OEM-123' } });
+    expect(existing[0].partNumber).toBe('OEM-123');
+  });
+  it('preserves the part number while proposing another field update', () => {
+    expect(dryRunCandidateImport([candidate({ name: 'Nombre revisado', partNumber: undefined })], existing).results[0])
+      .toMatchObject({ decision: 'UPDATE', proposed: { name: 'Nombre revisado', partNumber: 'OEM-123' } });
+    expect(dryRunCandidateImport([candidate({ partNumber: 'OEM-999' })], existing).results[0].decision).toBe('CONFLICT');
+  });
+  it.each(['A_CONFIRMAR', 'OEM-999'])('blocks every repeated code independently of ordering (%s)', partNumber => {
+    const batch = [candidate(), candidate({ candidateId: 'CSV-2', code: ' flt-01 ', partNumber })];
+    for (const rows of [batch, [...batch].reverse()]) {
+      const result = dryRunCandidateImport(rows, []);
+      expect(result.summary).toMatchObject({ add: 0, update: 0, conflict: 2 });
+      for (const row of result.results) expect(row).toMatchObject({ decision: 'CONFLICT', stockEffect: 'NONE', reasons: ['DUPLICATE_CODE_IN_BATCH'] });
+    }
+  });
+});

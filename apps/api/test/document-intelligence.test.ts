@@ -24,3 +24,27 @@ describe('ASTRA-006 document intelligence', () => {
     expect(isWithinRoot('/docs', '/docs/../secret.pdf')).toBe(false);
   });
 });
+
+describe('coverage evidence regressions', () => {
+  it.each(['OCR_REQUIRED', 'PARTIAL', 'TEXT_EXTRACTED'])('keeps missing page evidence unknown for %s', extractionStatus => {
+    const result = normalizeInventory([{ path: '/docs/manual.pdf', sha256: 'a', pages: 4, textCharacters: 0, extractionStatus }]);
+    expect(result.sources[0].coverage).toMatchObject({ pagesWithText: null, percent: null });
+    expect(result.sources[0].warnings).toContain('COBERTURA_DESCONOCIDA');
+    if (extractionStatus !== 'TEXT_EXTRACTED') expect(result.ocrQueue[0].reason).toContain('Cobertura desconocida');
+  });
+  it('does not treat an empty OCR list as complete extraction when OCR is required', () => {
+    expect(normalizeInventory([{ path: '/docs/a.pdf', sha256: 'a', pages: 4, extractionStatus: 'OCR_REQUIRED', pagesNeedingOCR: [] }]).sources[0].coverage.percent).toBeNull();
+  });
+  it('retains explicit complete and zero coverage', () => {
+    for (const [pagesNeedingOCR, extractionStatus, percent] of [[[], 'TEXT_EXTRACTED', 100], [[1, 2], 'OCR_REQUIRED', 0]] as const) {
+      expect(normalizeInventory([{ path: '/docs/a.pdf', sha256: 'a', pages: 2, extractionStatus, pagesNeedingOCR: [...pagesNeedingOCR] }]).sources[0].coverage.percent).toBe(percent);
+    }
+  });
+  it('does not compute coverage from invalid page evidence or unknown total', () => {
+    for (const pages of [2, undefined]) {
+      const source = normalizeInventory([{ path: '/docs/a.pdf', sha256: 'a', pages, extractionStatus: 'OCR_REQUIRED', pagesNeedingOCR: [0, 3] }]).sources[0];
+      expect(source.coverage.percent).toBeNull();
+      expect(source.warnings).toContain('COBERTURA_DESCONOCIDA');
+    }
+  });
+});
