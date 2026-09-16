@@ -23,10 +23,10 @@ No se modificaron reglas de negocio, Prisma, stock, corpus ni datos. No se despl
 
 ## Evidencia
 
-- Commit funcional aislado: `98aaac6562606f4661062d661dd7994658be28e5`.
+- Commit funcional aislado: `68ee6315f1e4ccaa2399bde6d83138663b5135cf`.
 - `scripts/Verify.ps1` sobre un worktree limpio detached en ese SHA: PASS.
 - Instalación reproducible sin vulnerabilidades reportadas; cinco migraciones aplicadas en `astra_test` aislada.
-- Typecheck API/web, 54/54 pruebas API, 4/4 pruebas web y build API/web: PASS.
+- Typecheck API/web, 54/54 pruebas API, 5/5 pruebas web y build API/web: PASS.
 
 ## Cobertura pendiente
 
