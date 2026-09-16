@@ -98,6 +98,12 @@ Ejecutado `scripts/Verify.ps1 -SkipInstall`. Resultado: PASS. Prisma generate y 
 
 Cobertura agregada: filtros JSON por categoría, relevancia y procedencia; clasificación conservadora del analizador; derivación restringida a ADMIN y PART_CANDIDATE; rechazo de OCR_REQUIRED; copia de fuente/hash/locator/aplicabilidad; idempotencia; una sola revisión CREATE_CANDIDATE y cero movimientos de stock.
 
+## 2026-09-16 — segmentación por ítem de catálogo
+
+Ejecutado `scripts/Verify.ps1 -SkipInstall`. Resultado: PASS. Prisma generate y migrations OK; typecheck API/web OK; tests API 52/52 OK; build API/web OK. Puerto aislado de prueba reasignado 50393->50394.
+
+Muestreo real adicional sobre 12 fuentes y 85 hallazgos: las filas verticales del manual Richiger EA350 se reconstruyen por ítem. EX-18070C queda como protector/estructura-transmisión y MP0124 como rodamiento, ambos con procedencia TABLA_REPUESTOS; el contexto vecino se conserva separado para inspección humana.
+
 ## 2026-09-16 — referencias de equipo/manual
 
 Comandos: npm run typecheck --workspaces; npx vitest run apps/api/test/document-analysis.test.ts --maxWorkers=1.

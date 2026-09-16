@@ -18,7 +18,7 @@ export type DocumentFinding = {
   confidence: FindingConfidence;
   reviewStatus: 'A_CONFIRMAR';
   stockEffect: 'NONE';
-  evidence: { sourceId: string; sha256: string; textLocator: string; snippet: string; category?: string; relevance?: string; provenanceKind?: string; sourceTitle?: string };
+  evidence: { sourceId: string; sha256: string; textLocator: string; snippet: string; contextSnippet?: string; category?: string; relevance?: string; provenanceKind?: string; sourceTitle?: string };
   warnings: string[];
 };
 
@@ -70,6 +70,27 @@ function snippetAround(text: string, index: number, size = 160) {
   return cleanText(text.slice(start, end));
 }
 
+function itemTextAround(text: string, index: number, fallback: string) {
+  const lineStart = text.lastIndexOf('\n', index - 1) + 1;
+  const nextBreak = text.indexOf('\n', index);
+  const lineEnd = nextBreak < 0 ? text.length : nextBreak;
+  const line = text.slice(lineStart, lineEnd);
+  const beforeLines = text.slice(0, lineStart).trimEnd().split(/\r?\n/);
+  const afterLines = text.slice(lineEnd + (nextBreak < 0 ? 0 : 1)).split(/\r?\n/);
+  const previous = cleanText(beforeLines.at(-1) ?? '');
+  const itemNumber = cleanText(beforeLines.at(-2) ?? '');
+  const quantity = cleanText(afterLines[0] ?? '');
+  if (/^\d{1,3}$/.test(itemNumber) && previous && /^\d+(?:[.,]\d+)?$/.test(quantity)) {
+    return cleanText(`${itemNumber} ${previous} ${line} ${quantity}`);
+  }
+  const localIndex = index - lineStart;
+  const boundaries = [...line.matchAll(/\b\d{1,3}\s+(?=[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚáéíóúñ])/g)].map(match => match.index ?? 0);
+  const start = boundaries.filter(boundary => boundary <= localIndex).at(-1) ?? 0;
+  const end = boundaries.find(boundary => boundary > localIndex) ?? line.length;
+  const item = cleanText(line.slice(start, end));
+  return item.length >= 4 ? item : fallback;
+}
+
 function locatorFor(text: string, index: number) {
   const before = text.slice(0, index);
   const pageMatch = [...before.matchAll(/\bpage[:\s]+(\d+)\b/gi)].at(-1);
@@ -92,8 +113,12 @@ function contextName(snippet: string, code: string, kind: FindingKind) {
   if (lower.includes('filtro')) return `Posible filtro asociado a ${code}`;
   if (lower.includes('reten') || lower.includes('retén')) return `Posible retén asociado a ${code}`;
   if (lower.includes('rodamiento')) return `Posible rodamiento asociado a ${code}`;
+  if (lower.includes('bearing')) return `Posible rodamiento asociado a ${code}`;
   if (lower.includes('aceite') || lower.includes('lubric')) return `Posible lubricante o insumo asociado a ${code}`;
   if (lower.includes('correa')) return `Posible correa asociada a ${code}`;
+  if (lower.includes('guard')) return `Posible protector asociado a ${code}`;
+  if (lower.includes('shaft')) return `Posible componente de eje asociado a ${code}`;
+  if (lower.includes('pin')) return `Posible pasador asociado a ${code}`;
   return `Posible identificador técnico ${code}`;
 }
 
@@ -121,6 +146,7 @@ function relevanceFor(snippet: string, kind: FindingKind, confidence: FindingCon
   if (kind === 'OCR_REQUIRED') return 'ALTA';
   if (kind === 'EQUIPMENT_REFERENCE') return confidence === 'MEDIA' ? 'MEDIA' : 'BAJA';
   if (/\b(?:qty|cantidad|cant\.|description|c[oó]digo|code|part|repuesto|pieza|n[º°]|nro\.?|item)\b/i.test(snippet)) return 'ALTA';
+  if (/^\d{1,3}\s+.+\b[A-Z]{1,5}[-\s]?\d{3,8}[A-Z0-9-]*\s+\d+$/i.test(snippet)) return 'ALTA';
   if (confidence === 'MEDIA') return 'MEDIA';
   return 'BAJA';
 }
@@ -129,6 +155,7 @@ function provenanceKind(source: SourceRecord, snippet: string, kind: FindingKind
   const context = `${source.name ?? ''} ${source.path} ${snippet}`;
   if (kind === 'EQUIPMENT_REFERENCE') return /repuesto|parts|spare/i.test(context) ? 'MANUAL_REPUESTOS_EQUIPO' : 'MANUAL_INSTRUCCIONES_EQUIPO';
   if (/\b(?:qty|cantidad|description|diagram|item|n[º°])\b/i.test(snippet)) return 'TABLA_REPUESTOS';
+  if (/^\d{1,3}\s+.+\b[A-Z]{1,5}[-\s]?\d{3,8}[A-Z0-9-]*\s+\d+$/i.test(snippet)) return 'TABLA_REPUESTOS';
   if (/ficha[_\s-]*t[eé]cnica|technical/i.test(context)) return 'FICHA_TECNICA';
   return source.kind ?? 'A_CONFIRMAR';
 }
@@ -155,15 +182,16 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     const snippet = snippetAround(text, index);
     const locator = locatorFor(text, index);
     const kind = findingKindFor(source, snippet, code);
-    const confidence = confidenceFor(source, snippet, kind);
-    const category = partCategory(snippet, kind);
+    const itemText = kind === 'EQUIPMENT_REFERENCE' ? snippet : itemTextAround(text, index, snippet);
+    const confidence = confidenceFor(source, itemText, kind);
+    const category = partCategory(itemText, kind);
     findings.push({
       id: `${sourceId}:${code}:${locator}`,
       sourceId,
       kind,
       title: source.name ?? path.basename(source.path),
       code,
-      name: contextName(snippet, code, kind),
+      name: contextName(itemText, code, kind),
       partNumber: 'A_CONFIRMAR',
       unit: 'u',
       locator,
@@ -171,7 +199,7 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
       confidence,
       reviewStatus: 'A_CONFIRMAR',
       stockEffect: 'NONE',
-      evidence: { sourceId, sha256, textLocator: locator, snippet, category, relevance: relevanceFor(snippet, kind, confidence), provenanceKind: provenanceKind(source, snippet, kind), sourceTitle: source.name ?? path.basename(source.path) },
+      evidence: { sourceId, sha256, textLocator: locator, snippet: itemText, ...(itemText !== snippet ? { contextSnippet: snippet } : {}), category, relevance: relevanceFor(itemText, kind, confidence), provenanceKind: provenanceKind(source, itemText, kind), sourceTitle: source.name ?? path.basename(source.path) },
       warnings: [...warnings, 'REVISION_HUMANA_REQUERIDA', ...(kind === 'EQUIPMENT_REFERENCE' ? ['REFERENCIA_EQUIPO_MANUAL'] : ['PN_NO_CONFIRMADO'])],
     });
     if (findings.length >= limit) break;

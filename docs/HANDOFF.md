@@ -52,6 +52,10 @@ El analizador agrega a cada evidencia una categoría inicial, relevancia, tipo d
 
 ADMIN puede derivar un PART_CANDIDATE con una sola acción. El backend copia los campos extraídos a DocumentCandidate, conserva `A_CONFIRMAR` cuando el PN no fue validado, registra revisión/auditoría e impide derivar referencias de equipo u OCR. El flujo no aplica catálogo ni genera movimientos de stock.
 
+## Incremento: segmentación por ítem de catálogo — 2026-09-16
+
+La categorización ya no usa indiscriminadamente todo el fragmento vecino. El analizador reconstruye filas horizontales y tablas PDF extraídas verticalmente como `ítem + descripción + código + cantidad`, clasifica ese bloque y conserva el contexto amplio por separado. La UI presenta “Renglón identificado” y permite desplegar “Ver contexto vecino”. Esto reduce categorías heredadas de la pieza siguiente y mantiene el texto original disponible para revisión.
+
 Verificación: scripts/Verify.ps1 -SkipInstall aplicó la migración en astra_test, ejecutó db:generate, typecheck API/web, 49 tests y build API/web correctamente. Durante test se reasignó el puerto de base test de 50387 a 50388 por ocupación local.
 
 ## Ajuste: referencias de equipo/manual — 2026-09-16
