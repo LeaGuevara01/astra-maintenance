@@ -4,11 +4,11 @@ El estado vigente está en [CURRENT-STATUS.md](CURRENT-STATUS.md) y el trabajo s
 
 ## Identidad de continuidad
 
-- Rama documental: `docs/ASTRA-documentation-baseline`.
-- Base de la rama: `c8e2efb3854caeca92e09a6a46912827775234b9`.
-- OpenAPI: commit funcional `7cb84e8`, prueba dirigida posterior 2/2; no desplegado.
-- Documentación: consolidación validada y separada del commit funcional; consultar Git para su identidad final.
-- Staging observado: identidad API `c8e2efb`; los cambios locales no están desplegados.
+- `main` y `origin/main`: `a0c9178d668305bc33bc8bacdad9f0ec529e4653`, merge de PR #8.
+- Verificación limpia más reciente: `a0c9178`; typecheck, 54/54 pruebas, cinco migraciones sin pendientes y build API/web.
+- Staging sintético: `a0c9178`; health, version y footer coincidentes.
+- Rama siguiente: `chore/ASTRA-DOC-002-post-deploy-plan`, basada en `a0c9178`; sus cambios documentales no están desplegados.
+- Próximo desarrollo: [ASTRA-010 — lector seguro de fuentes](05-planning/ASTRA-010-secure-source-reader.md), iniciando por contrato/resolver con fixtures.
 
 ## Registros por incremento
 
@@ -26,6 +26,7 @@ El estado vigente está en [CURRENT-STATUS.md](CURRENT-STATUS.md) y el trabajo s
 | ASTRA-EVIDENCE-20260916-06 | Base y consolidación documental | `working-tree-on-c8e2efb3854caeca92e09a6a46912827775234b9` | [registro](07-evidence/releases/2026-09-16/06-documentation-baseline.md) |
 | ASTRA-EVIDENCE-20260916-07 | ASTRA-DOC-001 paridad OpenAPI | `working-tree-on-c8e2efb3854caeca92e09a6a46912827775234b9` | [registro](07-evidence/releases/2026-09-16/07-openapi-parity.md) |
 | ASTRA-EVIDENCE-20260916-08 | Consolidación y archivo documental | `working-tree-on-c8e2efb3854caeca92e09a6a46912827775234b9` | [registro](07-evidence/releases/2026-09-16/08-documentation-archive-lots.md) |
+| ASTRA-EVIDENCE-20260916-09 | Integración de ASTRA-DOC-001 y staging | `a0c9178d668305bc33bc8bacdad9f0ec529e4653` | [registro](07-evidence/releases/2026-09-16/09-main-integration-and-staging.md) |
 
 ## Lectura segura
 

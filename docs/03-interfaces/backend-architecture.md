@@ -1,6 +1,6 @@
 # Arquitectura backend
 
-Estado: arquitectura implementada en la base `c8e2efb`. ASTRA API es un monolito modular Express/TypeScript con PostgreSQL y Prisma; no hay microservicios ni jobs persistentes.
+Estado: arquitectura implementada e integrada en `a0c9178`. ASTRA API es un monolito modular Express/TypeScript con PostgreSQL y Prisma; no hay microservicios ni jobs persistentes.
 
 ## Capas
 
@@ -23,7 +23,7 @@ Persistencia y concurrencia
 PostgreSQL
 ```
 
-`documents.ts` genera HTML/PDF desde el snapshot de la orden. `openapi.ts` sirve una descripción pública que hoy cubre el circuito preventivo, pero no todo el módulo documental.
+`documents.ts` genera HTML/PDF desde el snapshot de la orden. `openapi.ts` sirve las 35 operaciones implementadas y una prueba compara paridad método+ruta y referencias locales.
 
 ## Inicio y configuración
 

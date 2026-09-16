@@ -19,6 +19,7 @@ Este índice conserva handoff y verificación por incremento. Cada archivo decla
 - [Base y consolidación documental](2026-09-16/06-documentation-baseline.md)
 - [ASTRA-DOC-001 paridad OpenAPI](2026-09-16/07-openapi-parity.md)
 - [Consolidación y archivo documental](2026-09-16/08-documentation-archive-lots.md)
+- [Integración de ASTRA-DOC-001 y staging](2026-09-16/09-main-integration-and-staging.md)
 
 ## Integridad
 

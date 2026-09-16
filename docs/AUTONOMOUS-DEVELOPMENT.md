@@ -13,10 +13,8 @@ Autorización del usuario: 2026-09-15, “Autonomizar avance de desarrollo”. S
 
 ## Orden de avance
 
-- Paginación documental: incremento actual.
-- Historial de revisión acotado/paginado y nombres de revisores en lugar de IDs internos.
-- Completar contrato OpenAPI del módulo y pruebas de concurrencia entre revisores.
-- Lector de originales por ID con raíces configuradas, validación realpath/hash y límites. Diseñar primero contra fixtures aislados; no publicar carpetas personales.
+- Paginación, historial, OpenAPI y concurrencia documental: integrados en `a0c9178`; no repetir.
+- Ejecutar [ASTRA-010](05-planning/ASTRA-010-secure-source-reader.md) por gates: contrato/resolver, endpoint, UI y staging sintético. Diseñar primero contra fixtures aislados; no publicar carpetas personales.
 - Preparar lote técnico pequeño con fuente/localizador/aplicabilidad para decisión humana.
 - Diseñar aplicación al catálogo sin efecto de stock después de definir identidad de lote, vigencia de revisión y autorización del lote.
 

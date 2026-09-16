@@ -4,10 +4,11 @@ Actualizado: 2026-09-16. Este archivo conserva el estado verificable actual y en
 
 ## Estado verificable actual
 
-- Base local: `c8e2efb3854caeca92e09a6a46912827775234b9`.
-- Árbol equivalente previo al commit funcional: `scripts/Verify.ps1 -SkipInstall` PASS, cinco migraciones sin pendientes, typecheck API/web, 54/54 pruebas y build API/web.
-- OpenAPI: commit `7cb84e8`; 35 operaciones cubiertas y prueba dirigida posterior al commit 2/2 PASS. No desplegado.
-- Staging observado: health ready y API version `c8e2efb`; footer no reverificado.
+- `main`/`origin/main` integrados: `a0c9178d668305bc33bc8bacdad9f0ec529e4653`.
+- `./scripts/Verify.ps1 -SkipInstall`: PASS sobre ese SHA limpio; cinco migraciones sin pendientes, typecheck API/web, 54/54 pruebas y build API/web.
+- OpenAPI: 32 paths y 35 operaciones; paridad método+ruta incluida en la suite.
+- Staging observado: health ready, API version y footer coinciden con `a0c9178`; entorno `staging`, versión `0.1.0`.
+- Backup previo creado y hasheado; no se ejecutó restore-check específico sobre ese dump.
 - Revisión visual de paginaciones y drag desktop: omitida por decisión del usuario, no ejecutada.
 
 ## Índice de evidencia
@@ -16,8 +17,8 @@ Consultar [07-evidence/verification-index.md](07-evidence/verification-index.md)
 
 ## Pendientes de verificación
 
-- Las pruebas dirigidas de los cuatro defectos ya fueron completadas según la sección anterior.
-- CI remoto del nuevo commit, si el repositorio lo ejecuta, es evidencia separada de las comprobaciones locales.
+- ASTRA-DOC-002 modifica documentación y whitespace únicamente; requiere auditoría, enlaces y `git diff --check`, no una repetición funcional completa.
+- ASTRA-010 aún es plan: sus checks se ejecutarán por incremento cuando exista implementación.
 - Backup programado y acceso LAN/TLS solo si se decide habilitar operación persistente o LAN.
 
 ## Criterios de lectura

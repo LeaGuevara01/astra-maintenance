@@ -45,7 +45,7 @@ API y health bastan para evidencia técnica del runtime; no sustituyen revisión
 
 ## Fallo y recuperación
 
-`deployment-failure.json` registra fase, commit y resultado de recuperación. Si ya se activó el candidato:
+`deployment-failure.json` registra el último fallo observado y se conserva como evidencia histórica aunque un despliegue posterior resulte exitoso. No representa el release activo: comparar siempre su `commit` y `failedAt` con `release.json`. Si ya se activó el candidato:
 
 - con release anterior: intenta restaurar imágenes anteriores y preserva datos;
 - primer despliegue: detiene API/web y preserva base;
