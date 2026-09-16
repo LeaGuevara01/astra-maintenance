@@ -351,6 +351,31 @@ describe('document candidate pagination', () => {
   });
 });
 
+describe('document source review queue', () => {
+  it('filters sources by extraction status, family and priority without deriving candidates', async () => {
+    const viewer = await login('consulta');
+    const admin = await db.user.findUniqueOrThrow({ where: { email: 'admin@astra.local' } });
+    const high = await db.documentRevision.create({ data: { sourceId: 'SRC-JD-OCR', title: 'JOHN DEERE 4730 AN203010 FILTRO HIDRÁULICO.pdf', sha256: 'd'.repeat(64), createdAt: new Date('2100-01-03T00:00:00Z') } });
+    const textReady = await db.documentRevision.create({ data: { sourceId: 'SRC-HILUX-TEXT', title: 'MANUAL HILUX 2017.pdf', sha256: 'e'.repeat(64), createdAt: new Date('2100-01-02T00:00:00Z') } });
+    const low = await db.documentRevision.create({ data: { sourceId: 'SRC-DUP', title: 'BULNES - CATÁLOGO DE REPUESTOS TRANSMISIÓN (2).pdf', sha256: 'f'.repeat(64), createdAt: new Date('2100-01-01T00:00:00Z') } });
+    await db.audit.createMany({ data: [
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: high.id, details: { kind: 'TECHNICAL_REFERENCE', extractionStatus: 'OCR_REQUIRED', pages: 3, pagesNeedingOCR: [1, 2, 3], reviewStatus: 'A_CONFIRMAR' } },
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: textReady.id, details: { kind: 'MANUAL_OR_CATALOG', extractionStatus: 'TEXT_EXTRACTED', pages: 555, pagesNeedingOCR: [], reviewStatus: 'A_CONFIRMAR' } },
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: low.id, details: { kind: 'MANUAL_OR_CATALOG', extractionStatus: 'DUPLICATE', pages: null, pagesNeedingOCR: [], reviewStatus: 'A_CONFIRMAR' } },
+    ] });
+    const ocr = (await viewer.agent.get('/api/v1/document-candidates/sources/page?extractionStatus=OCR_REQUIRED&family=John%20Deere&priority=ALTA').expect(200)).body;
+    expect(ocr.items).toHaveLength(1);
+    expect(ocr.items[0]).toMatchObject({ sourceId: 'SRC-JD-OCR', extractionStatus: 'OCR_REQUIRED', family: 'John Deere', priority: 'ALTA', pagesNeedingOCR: [1, 2, 3], hasCandidates: false });
+    const text = (await viewer.agent.get('/api/v1/document-candidates/sources/page?extractionStatus=TEXT_EXTRACTED&family=Hilux').expect(200)).body;
+    expect(text.items.map((row: any) => row.sourceId)).toEqual(['SRC-HILUX-TEXT']);
+    const baja = (await viewer.agent.get('/api/v1/document-candidates/sources/page?priority=BAJA').expect(200)).body;
+    expect(baja.items.map((row: any) => row.sourceId)).toContain('SRC-DUP');
+    await viewer.agent.get('/api/v1/document-candidates/sources/page?cursor=missing').expect(400);
+    expect(await db.documentCandidate.count()).toBe(0);
+    expect(await db.stockMovement.count()).toBe(0);
+  });
+});
+
 describe('document review history pagination', () => {
   it('bounds history, resolves names and continues despite concurrent decisions', async () => {
     const admin = await login(), tech = await login('tecnico'), viewer = await login('consulta');

@@ -4,6 +4,8 @@ import { api } from './api';
 import { Badge } from './ui';
 type Candidate = { id: string; code: string; name: string; partNumber: string; unit: string; locator: string; applicability: string; version: number; revision: { sourceId: string; title: string; sha256: string }; reviews: { id: string; decision: string; reason: string; actorId: string; createdAt: string }[] };
 type CandidatePage = { items: Candidate[]; nextCursor: string | null };
+type SourceQueueItem = { id: string; sourceId: string; title: string; sha256: string; kind: string; extractionStatus: string; pages: number | null; pagesNeedingOCR: number[]; reviewStatus: string; family: string; priority: string; hasCandidates: boolean };
+type SourceQueuePage = { items: SourceQueueItem[]; nextCursor: string | null };
 type Result = { candidateId: string; decision: string; reasons: string[]; proposed: { partNumber: string }; stockEffect: string };
 type ReviewPage = { items: { id: string; decision: string; reason: string; actorId: string; actorName: string | null; createdAt: string }[]; nextCursor: number | null };
 function ReviewHistory({ candidateId }: { candidateId: string }) {
@@ -28,6 +30,44 @@ function ReviewHistory({ candidateId }: { candidateId: string }) {
     <button className="button secondary" disabled={loading || page.nextCursor === null} onClick={() => { setPrevious([...previous, cursor]); setCursor(page.nextCursor); }}>Decisiones anteriores</button></div>
   </>;
 }
+const sourceStatuses = ['TEXT_EXTRACTED', 'OCR_REQUIRED', 'VISUAL_REVIEW_REQUIRED', 'DUPLICATE', 'A_CONFIRMAR'];
+const priorities = ['ALTA', 'MEDIA', 'BAJA'];
+function SourceQueue() {
+  const [rows, setRows] = useState<SourceQueueItem[]>([]), [selected, select] = useState('');
+  const [status, setStatus] = useState(''), [family, setFamily] = useState(''), [priority, setPriority] = useState('');
+  const [cursor, setCursor] = useState<string | null>(null), [nextCursor, setNextCursor] = useState<string | null>(null), [previous, setPrevious] = useState<(string | null)[]>([]);
+  const [loading, setLoading] = useState(false), [error, setError] = useState('');
+  const path = (value: string | null) => {
+    const params = new URLSearchParams({ limit: '25' });
+    if (value) params.set('cursor', value);
+    if (status) params.set('extractionStatus', status);
+    if (family.trim()) params.set('family', family.trim());
+    if (priority) params.set('priority', priority);
+    return `/document-candidates/sources/page?${params.toString()}`;
+  };
+  useEffect(() => {
+    let current = true;
+    setLoading(true); setError(''); setRows([]); setNextCursor(null); select('');
+    api<SourceQueuePage>(path(cursor)).then(data => {
+      if (current) { setRows(data.items); setNextCursor(data.nextCursor); select(data.items[0]?.id ?? ''); }
+    }).catch(e => { if (current) setError(e.message); }).finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [cursor, status, family, priority]);
+  const active = rows.find(row => row.id === selected);
+  function resetFilters() { setPrevious([]); setCursor(null); }
+  return <section className="panel panel-content source-queue"><div className="section-heading"><div><h2>Cola de revisión por fuente</h2><p>Las fuentes se revisan antes de crear candidatos. Todo queda A_CONFIRMAR hasta validar página, hash y aplicabilidad.</p></div><Badge tone="orange">Sin derivar repuestos</Badge></div>
+    <div className="source-filters">
+      <label className="field">Estado de extracción<select value={status} onChange={e => { resetFilters(); setStatus(e.target.value); }}><option value="">Todos</option>{sourceStatuses.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+      <label className="field">Familia / equipo<input value={family} onChange={e => { resetFilters(); setFamily(e.target.value); }} placeholder="John Deere, Hilux, siembra…" /></label>
+      <label className="field">Prioridad<select value={priority} onChange={e => { resetFilters(); setPriority(e.target.value); }}><option value="">Todas</option>{priorities.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+    </div>
+    {error && <div role="alert" className="notice">{error}</div>}
+    <div className="review-grid"><div><h3>Fuentes · página {previous.length + 1}</h3>{loading && <p role="status">Cargando fuentes…</p>}{!loading && !rows.length && <p>No hay fuentes con estos filtros.</p>}{rows.map(row => <button key={row.id} className={`review-item ${row.id === selected ? 'active' : ''}`} onClick={() => select(row.id)}><div><strong>{row.title}</strong><small>{row.family} · {row.extractionStatus}</small></div><Badge tone={row.priority === 'ALTA' ? 'orange' : row.priority === 'BAJA' ? 'gray' : 'green'}>{row.priority}</Badge></button>)}
+      <div className="decision-buttons"><button className="button secondary" disabled={loading || !previous.length} onClick={() => { setCursor(previous[previous.length - 1]); setPrevious(previous.slice(0, -1)); }}>Anterior</button><button className="button secondary" disabled={loading || !nextCursor} onClick={() => { setPrevious([...previous, cursor]); setCursor(nextCursor); }}>Siguiente</button></div></div>
+      {active && <div className="review-detail"><h3>{active.sourceId}</h3><h2>{active.title}</h2><div className="evidence-card"><div><span>Estado</span><strong>{active.extractionStatus}</strong></div><div><span>Familia / equipo</span><strong>{active.family}</strong></div><div><span>Prioridad</span><strong>{active.priority}</strong></div><div><span>Páginas</span><strong>{active.pages ?? 'A_CONFIRMAR'}</strong></div><div><span>OCR pendiente</span><strong>{active.pagesNeedingOCR.length ? active.pagesNeedingOCR.join(', ') : 'Sin páginas declaradas'}</strong></div><div><span>Candidatos</span><strong>{active.hasCandidates ? 'Ya derivados' : 'Sin derivar'}</strong></div></div><p className="mono" style={{ overflowWrap: 'anywhere' }}>{active.sha256}</p><p className="notice">Para derivar un candidato: mantener PN desconocido como A_CONFIRMAR, registrar locator de página/hoja, hash de esta revisión y aplicabilidad de modelo o variante.</p></div>}
+    </div>
+  </section>;
+}
 export default function DocumentReviewView({ role }: { role: Role }) {
   const [rows, setRows] = useState<Candidate[]>([]), [selected, select] = useState('');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [reason, setReason] = useState('');
@@ -42,6 +82,7 @@ export default function DocumentReviewView({ role }: { role: Role }) {
   return <><div className="page-heading"><div><h1>Revisión documental</h1><p>Decisiones guardadas con fuente, revisión y responsable. Comparación con el catálogo vigente.</p></div><Badge tone="orange">Sin aplicación al catálogo ni stock</Badge></div>
     {error && <div role="alert" className="notice">{error}</div>}
     <button className="button secondary" disabled={busy} onClick={() => run(reload)}>Actualizar</button>
+    <SourceQueue />
     {role === 'ADMIN' && <details className="panel panel-content"><summary>Registrar candidato</summary><form onSubmit={e => { e.preventDefault(); const form = e.currentTarget; const body = Object.fromEntries(new FormData(form)); void run(async () => { const row = await api<Candidate>('/document-candidates', 'POST', body, true); if (cursor !== null) { setPrevious([]); setCursor(null); } else { await reload(); select(row.id); } form.reset(); }); }}>
       {([['sourceId','Identificador de fuente'],['title','Título de fuente'],['sha256','SHA-256 de la revisión'],['locator','Página / sección'],['applicability','Aplicabilidad declarada (modelo, variante, serie)'],['code','Código de catálogo'],['name','Descripción'],['partNumber','Número de pieza o A_CONFIRMAR'],['unit','Unidad']] as const).map(([name,label]) => <label key={name} className="field">{label}<input name={name} required maxLength={name === 'applicability' ? 500 : name === 'title' || name === 'name' || name === 'locator' ? 200 : name === 'unit' ? 30 : 100} pattern={name === 'sha256' ? '[a-f0-9]{64}' : undefined} defaultValue={name === 'partNumber' ? 'A_CONFIRMAR' : undefined}/></label>)}
       <button className="button primary" disabled={busy}>Guardar candidato</button></form></details>}

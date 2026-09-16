@@ -8,9 +8,91 @@ import { dryRunCandidateImport } from './candidate-import.js';
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 const include = { revision: true, reviews: { orderBy: { version: 'desc' as const } } };
+const sourceStatuses = ['TEXT_EXTRACTED', 'OCR_REQUIRED', 'VISUAL_REVIEW_REQUIRED', 'DUPLICATE', 'A_CONFIRMAR'] as const;
+const sourcePriorities = ['ALTA', 'MEDIA', 'BAJA'] as const;
+type SourceStatus = typeof sourceStatuses[number];
+type SourcePriority = typeof sourcePriorities[number];
+type SourceQueueMetadata = { kind?: string; extractionStatus?: string; pages?: number | null; pagesNeedingOCR?: number[]; reviewStatus?: string };
+const familyRules = [
+  ['John Deere', /\b(john\s*deere|jd|[as]t\d{5,6}|an\d{6})\b/i],
+  ['Case IH / Puma', /\b(case\s*ih|puma|cnh)\b/i],
+  ['Toyota Hilux', /\b(hilux|toyota)\b/i],
+  ['Siembra / PLA / MXY', /\b(pla|mxy|siembra|dosificador|richiger)\b/i],
+  ['Filtros y equivalencias', /\b(filtro|equivalenc)\b/i],
+  ['Rodamientos y retenes', /\b(rodamiento|reten|ret[eé]n)\b/i],
+  ['Lubricantes y seguridad', /\b(gulf|lubric|aceite|hoja[_\s-]*seguridad|ficha[_\s-]*t[eé]cnica)\b/i],
+  ['Herramientas y taller', /\b(herramienta|taller|bremen|tecnomax)\b/i],
+  ['Eléctrico / Kalop', /\b(kalop|cable|fotocontrol|grampa)\b/i],
+] as const;
+function metadata(details: unknown): SourceQueueMetadata {
+  if (!details || typeof details !== 'object') return {};
+  const raw = details as Record<string, unknown>;
+  return {
+    kind: typeof raw.kind === 'string' ? raw.kind : undefined,
+    extractionStatus: typeof raw.extractionStatus === 'string' ? raw.extractionStatus : undefined,
+    pages: typeof raw.pages === 'number' ? raw.pages : null,
+    pagesNeedingOCR: Array.isArray(raw.pagesNeedingOCR) ? raw.pagesNeedingOCR.filter((v): v is number => typeof v === 'number') : [],
+    reviewStatus: typeof raw.reviewStatus === 'string' ? raw.reviewStatus : 'A_CONFIRMAR',
+  };
+}
+function sourceFamily(title: string) {
+  return familyRules.find(([, pattern]) => pattern.test(title))?.[0] ?? 'A clasificar';
+}
+function sourcePriority(status: SourceStatus, title: string, hasCandidates: boolean): SourcePriority {
+  if (hasCandidates || status === 'DUPLICATE') return 'BAJA';
+  if (status === 'OCR_REQUIRED' || status === 'VISUAL_REVIEW_REQUIRED') return 'ALTA';
+  return sourceFamily(title) === 'A clasificar' ? 'MEDIA' : 'ALTA';
+}
 export function documentReviewRouter(db: PrismaClient) {
   const router = Router();
   router.get('/', async (_req, res) => res.json(await db.documentCandidate.findMany({ include, orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], take: 200 })));
+  router.get('/sources/page', async (req, res) => {
+    const query = z.object({
+      limit: z.coerce.number().int().min(1).max(100).default(25),
+      cursor: text(100).optional(),
+      extractionStatus: z.enum(sourceStatuses).optional(),
+      family: z.string().trim().max(80).optional(),
+      priority: z.enum(sourcePriorities).optional(),
+    }).strict().parse(req.query);
+    const anchor = query.cursor ? await db.documentRevision.findUnique({ where: { id: query.cursor }, select: { id: true, createdAt: true } }) : null;
+    assert(!query.cursor || anchor, 400, 'INVALID_CURSOR', 'El cursor no corresponde a una fuente.');
+    const rows = await db.documentRevision.findMany({
+      include: { candidates: { select: { id: true }, take: 1 } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: 500,
+      where: anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { gt: anchor.id } }] } : undefined,
+    });
+    const audits = await db.audit.findMany({ where: { action: 'DOCUMENT_SOURCE_IMPORTED', entityId: { in: rows.map(row => row.id) } }, select: { entityId: true, details: true } });
+    const auditByRevision = new Map(audits.map(row => [row.entityId, metadata(row.details)]));
+    const filtered = rows.map(row => {
+      const meta = auditByRevision.get(row.id) ?? {};
+      const extractionStatus = (sourceStatuses as readonly string[]).includes(meta.extractionStatus ?? '') ? meta.extractionStatus as SourceStatus : 'A_CONFIRMAR';
+      const family = sourceFamily(row.title);
+      const priority = sourcePriority(extractionStatus, row.title, row.candidates.length > 0);
+      return {
+        id: row.id,
+        sourceId: row.sourceId,
+        title: row.title,
+        sha256: row.sha256,
+        createdAt: row.createdAt,
+        kind: meta.kind ?? 'A_CONFIRMAR',
+        extractionStatus,
+        pages: meta.pages ?? null,
+        pagesNeedingOCR: meta.pagesNeedingOCR ?? [],
+        reviewStatus: meta.reviewStatus ?? 'A_CONFIRMAR',
+        family,
+        priority,
+        hasCandidates: row.candidates.length > 0,
+      };
+    }).filter(row =>
+      (!query.extractionStatus || row.extractionStatus === query.extractionStatus) &&
+      (!query.family || row.family.toLocaleLowerCase('es-AR').includes(query.family.toLocaleLowerCase('es-AR'))) &&
+      (!query.priority || row.priority === query.priority)
+    );
+    const page = filtered.slice(0, query.limit + 1);
+    const items = page.slice(0, query.limit);
+    res.json({ items, nextCursor: page.length > query.limit ? items[items.length - 1].id : null });
+  });
   router.get('/page', async (req, res) => {
     const query = z.object({ limit: z.coerce.number().int().min(1).max(100).default(25), cursor: text(100).optional() }).strict().parse(req.query);
     const anchor = query.cursor ? await db.documentCandidate.findUnique({ where: { id: query.cursor }, select: { id: true, createdAt: true } }) : null;

@@ -50,3 +50,9 @@ GET /document-candidates/:id/reviews?limit=25&cursor=<version>: disponible para 
 Cada item conserva id, candidateId, version, decision, reason, actorId y createdAt; añade actorName (nombre actual del usuario o null si no está disponible). No es un snapshot del nombre histórico; la auditoría existente conserva actorName al decidir. No se exponen email ni credenciales. nextCursor es la versión del último item cuando quedan resultados, o null.
 
 GET /document-candidates/page incluye únicamente la última decisión por candidato en reviews. El GET legado /document-candidates conserva su historial completo para compatibilidad. La pantalla carga el historial seleccionado en páginas de 25 y vuelve a la primera al cambiar de candidato o versión.
+
+## Cola de revisión por fuente
+
+GET /document-candidates/sources/page?limit=25&cursor=<revisionId>&extractionStatus=<estado>&family=<texto>&priority=ALTA|MEDIA|BAJA: tres roles autenticados. Lista revisiones documentales antes de derivar candidatos. limit entero 1–100; cursor opcional válido de DocumentRevision. Filtros opcionales por extractionStatus, familia/equipo inferido de título y prioridad operativa. Respuesta {items,nextCursor}; cada item incluye sourceId, title, sha256, kind, extractionStatus, pages, pagesNeedingOCR, reviewStatus, family, priority y hasCandidates.
+
+La cola no crea candidatos, no decide revisiones y no modifica stock. Sirve para seleccionar fuentes que luego podrán derivar candidatos con PN desconocido A_CONFIRMAR, locator de página/hoja, hash de revisión y aplicabilidad declarada.
