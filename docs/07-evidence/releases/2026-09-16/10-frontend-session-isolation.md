@@ -23,9 +23,10 @@ No se modificaron reglas de negocio, Prisma, stock, corpus ni datos. No se despl
 
 ## Evidencia
 
-- `npm run test --workspace @astra/web`: 4/4 PASS.
-- `npm run typecheck --workspace @astra/web`: PASS.
-- `scripts/Verify.ps1 -SkipInstall`: pendiente de repetir sobre el commit aislado.
+- Commit funcional aislado: `98aaac6562606f4661062d661dd7994658be28e5`.
+- `scripts/Verify.ps1` sobre un worktree limpio detached en ese SHA: PASS.
+- Instalación reproducible sin vulnerabilidades reportadas; cinco migraciones aplicadas en `astra_test` aislada.
+- Typecheck API/web, 54/54 pruebas API, 4/4 pruebas web y build API/web: PASS.
 
 ## Cobertura pendiente
 
