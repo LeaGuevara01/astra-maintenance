@@ -42,3 +42,31 @@ No se sirven rutas físicas, no se suben originales, no se aplica catálogo ni s
 ## Paginación documental
 
 GET /document-candidates/page?limit=25&cursor=<candidateId>: tres roles autenticados. limit entero 1–100; cursor opcional válido. Respuesta {items,nextCursor}; orden createdAt descendente/id ascendente. Cursor delimita mediante fecha/id del candidato; nuevas altas anteriores al cursor no duplican páginas posteriores. Cursor inexistente: 400 INVALID_CURSOR. El GET anterior conserva su respuesta array para compatibilidad. La UI navega páginas de 25 y compara únicamente el lote visible.
+
+## Historial documental paginado
+
+GET /document-candidates/:id/reviews?limit=25&cursor=<version>: disponible para ADMIN, TECHNICIAN y VIEWER autenticados. limit entero 1–100; cursor entero positivo que debe existir en ese candidato. Devuelve {items,nextCursor}, orden version descendente y continuación exclusiva; las decisiones posteriores no desplazan la continuación. Candidato inexistente: 404 CANDIDATE_NOT_FOUND; cursor inexistente: 400 INVALID_CURSOR.
+
+Cada item conserva id, candidateId, version, decision, reason, actorId y createdAt; añade actorName (nombre actual del usuario o null si no está disponible). No es un snapshot del nombre histórico; la auditoría existente conserva actorName al decidir. No se exponen email ni credenciales. nextCursor es la versión del último item cuando quedan resultados, o null.
+
+GET /document-candidates/page incluye únicamente la última decisión por candidato en reviews. El GET legado /document-candidates conserva su historial completo para compatibilidad. La pantalla carga el historial seleccionado en páginas de 25 y vuelve a la primera al cambiar de candidato o versión.
+
+## Cola de revisión por fuente
+
+GET /document-candidates/sources/page?limit=25&cursor=<revisionId>&extractionStatus=<estado>&family=<texto>&priority=ALTA|MEDIA|BAJA: tres roles autenticados. Lista revisiones documentales antes de derivar candidatos. limit entero 1–100; cursor opcional válido de DocumentRevision. Filtros opcionales por extractionStatus, familia/equipo inferido de título y prioridad operativa. Respuesta {items,nextCursor}; cada item incluye sourceId, title, sha256, kind, extractionStatus, pages, pagesNeedingOCR, reviewStatus, family, priority y hasCandidates.
+
+La cola no crea candidatos, no decide revisiones y no modifica stock. Sirve para seleccionar fuentes que luego podrán derivar candidatos con PN desconocido A_CONFIRMAR, locator de página/hoja, hash de revisión y aplicabilidad declarada.
+
+## Hallazgos documentales asistidos
+
+GET /document-candidates/findings/page?limit=25&cursor=<findingId>&decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT&kind=<tipo>&sourceId=<fuente>&confidence=ALTA|MEDIA|BAJA&category=<categoria>&relevance=ALTA|MEDIA|BAJA&provenanceKind=<procedencia>: tres roles autenticados. Lista hallazgos persistidos por corridas de analizador, con revisión documental, hash, locator, evidencia, advertencias, estado humano y última revisión. Los filtros de categoría, relevancia y procedencia consultan los atributos conservadores almacenados en evidence. limit entero 1-100; cursor opcional válido de DocumentFinding. Cursor inexistente: 400 INVALID_CURSOR.
+
+POST /document-candidates/findings/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT, reason obligatorio. Registra decisión append-only, actualiza el estado visible del hallazgo y audita DOCUMENT_FINDING_REVIEWED. No crea candidato, no aplica catálogo y no modifica stock; CREATE_CANDIDATE sólo marca intención de derivación posterior.
+
+POST /document-candidates/findings/:id/candidate (ADMIN, Idempotency-Key): deriva únicamente un hallazgo PART_CANDIDATE con código extraído a DocumentCandidate, reutilizando revisión/fuente, código, descripción, PN, unidad, locator y aplicabilidad para evitar recarga manual. Registra una revisión CREATE_CANDIDATE y auditoría DOCUMENT_FINDING_DERIVED. La operación es idempotente, no valida el PN, no aplica catálogo y no modifica stock. EQUIPMENT_REFERENCE y OCR_REQUIRED devuelven 422 FINDING_NOT_PART.
+
+El comando npm run documents:analyze-sample conserva dry-run por defecto. Con -- --persist escribe corridas y hallazgos sólo para DocumentRevision ya cargadas, usando analyzerId/analyzerVersion. Si esa versión de analizador ya tiene hallazgos, bloquea la reescritura para preservar revisiones humanas.
+
+Los hallazgos pueden incluir kind=EQUIPMENT_REFERENCE para códigos de equipo, modelo o manual detectados en manuales de instrucciones o manuales de repuestos. Estas referencias son útiles para agrupar biblioteca técnica, aplicabilidad y futuras pantallas de equipo/manual; no son candidatos directos a Part y conservan partNumber=A_CONFIRMAR y stockEffect:NONE.
+
+En hallazgos de repuesto, `evidence.snippet` contiene el renglón o ítem reconstruido usado para clasificar y `evidence.contextSnippet` puede conservar el fragmento vecino más amplio. Ambos son evidencia para revisión; la segmentación y categoría siguen siendo propuestas `A_CONFIRMAR`.

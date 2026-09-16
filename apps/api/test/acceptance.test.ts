@@ -42,7 +42,7 @@ async function finish(session: Session, order: any) {
 
 beforeAll(async () => { await db.$connect(); });
 beforeEach(async () => {
-  await db.$executeRawUnsafe('TRUNCATE TABLE "DocumentReview", "DocumentCandidate", "DocumentRevision", "DeferredLink", "OrderTask", "OrderMaterial", "Checkpoint", "StockMovement", "Audit", "Idempotency", "WorkOrder", "Reading", "Asset", "PlanTask", "Plan", "Part", "Session", "User" RESTART IDENTITY CASCADE');
+  await db.$executeRawUnsafe('TRUNCATE TABLE "DocumentFindingReview", "DocumentFinding", "DocumentAnalysisRun", "DocumentReview", "DocumentCandidate", "DocumentRevision", "DeferredLink", "OrderTask", "OrderMaterial", "Checkpoint", "StockMovement", "Audit", "Idempotency", "WorkOrder", "Reading", "Asset", "PlanTask", "Plan", "Part", "Session", "User" RESTART IDENTITY CASCADE');
   await seed(db, credentials);
 });
 afterAll(() => db.$disconnect());
@@ -348,5 +348,101 @@ describe('document candidate pagination', () => {
     await session.agent.get('/api/v1/document-candidates/page?limit=101').expect(400);
     await session.agent.get('/api/v1/document-candidates/page?cursor=missing').expect(400);
     expect(Array.isArray((await session.agent.get('/api/v1/document-candidates').expect(200)).body)).toBe(true);
+  });
+});
+
+describe('document source review queue', () => {
+  it('filters sources by extraction status, family and priority without deriving candidates', async () => {
+    const viewer = await login('consulta');
+    const admin = await db.user.findUniqueOrThrow({ where: { email: 'admin@astra.local' } });
+    const high = await db.documentRevision.create({ data: { sourceId: 'SRC-JD-OCR', title: 'JOHN DEERE 4730 AN203010 FILTRO HIDRÁULICO.pdf', sha256: 'd'.repeat(64), createdAt: new Date('2100-01-03T00:00:00Z') } });
+    const textReady = await db.documentRevision.create({ data: { sourceId: 'SRC-HILUX-TEXT', title: 'MANUAL HILUX 2017.pdf', sha256: 'e'.repeat(64), createdAt: new Date('2100-01-02T00:00:00Z') } });
+    const low = await db.documentRevision.create({ data: { sourceId: 'SRC-DUP', title: 'BULNES - CATÁLOGO DE REPUESTOS TRANSMISIÓN (2).pdf', sha256: 'f'.repeat(64), createdAt: new Date('2100-01-01T00:00:00Z') } });
+    await db.audit.createMany({ data: [
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: high.id, details: { kind: 'TECHNICAL_REFERENCE', extractionStatus: 'OCR_REQUIRED', pages: 3, pagesNeedingOCR: [1, 2, 3], reviewStatus: 'A_CONFIRMAR' } },
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: textReady.id, details: { kind: 'MANUAL_OR_CATALOG', extractionStatus: 'TEXT_EXTRACTED', pages: 555, pagesNeedingOCR: [], reviewStatus: 'A_CONFIRMAR' } },
+      { actorId: admin.id, actorName: admin.name, action: 'DOCUMENT_SOURCE_IMPORTED', entityId: low.id, details: { kind: 'MANUAL_OR_CATALOG', extractionStatus: 'DUPLICATE', pages: null, pagesNeedingOCR: [], reviewStatus: 'A_CONFIRMAR' } },
+    ] });
+    const ocr = (await viewer.agent.get('/api/v1/document-candidates/sources/page?extractionStatus=OCR_REQUIRED&family=John%20Deere&priority=ALTA').expect(200)).body;
+    expect(ocr.items).toHaveLength(1);
+    expect(ocr.items[0]).toMatchObject({ sourceId: 'SRC-JD-OCR', extractionStatus: 'OCR_REQUIRED', family: 'John Deere', priority: 'ALTA', pagesNeedingOCR: [1, 2, 3], hasCandidates: false });
+    const text = (await viewer.agent.get('/api/v1/document-candidates/sources/page?extractionStatus=TEXT_EXTRACTED&family=Hilux').expect(200)).body;
+    expect(text.items.map((row: any) => row.sourceId)).toEqual(['SRC-HILUX-TEXT']);
+    const baja = (await viewer.agent.get('/api/v1/document-candidates/sources/page?priority=BAJA').expect(200)).body;
+    expect(baja.items.map((row: any) => row.sourceId)).toContain('SRC-DUP');
+    await viewer.agent.get('/api/v1/document-candidates/sources/page?cursor=missing').expect(400);
+    expect(await db.documentCandidate.count()).toBe(0);
+    expect(await db.stockMovement.count()).toBe(0);
+  });
+});
+
+describe('document review history pagination', () => {
+  it('bounds history, resolves names and continues despite concurrent decisions', async () => {
+    const admin = await login(), tech = await login('tecnico'), viewer = await login('consulta');
+    const created = await mutate(admin, 'post', '/document-candidates', { sourceId: 'HISTORY', title: 'Synthetic history', sha256: 'c'.repeat(64), code: 'HIST', name: 'Fixture', unit: 'u', locator: 'page:1', applicability: 'Synthetic' }).expect(201);
+    const route = `/document-candidates/${created.body.id}/reviews`;
+    await request(app).get('/api/v1' + route).expect(401);
+    expect((await viewer.agent.get('/api/v1' + route).expect(200)).body).toEqual({ items: [], nextCursor: null });
+    for (let version = 0; version < 3; version++) await mutate(tech, 'post', route, { version, decision: 'A_CONFIRMAR', reason: `Review ${version}` }).expect(200);
+    const first = (await viewer.agent.get('/api/v1' + route + '?limit=2').expect(200)).body;
+    expect(first.items.map((r: any) => r.version)).toEqual([3, 2]);
+    const actor = await db.user.findUniqueOrThrow({ where: { email: 'tecnico@astra.local' } });
+    expect(first.items[0]).toMatchObject({ actorId: actor.id, actorName: actor.name });
+    expect(first.items[0]).not.toHaveProperty('passwordHash');
+    expect(first.nextCursor).toBe(2);
+    const races = await Promise.all([admin, tech].map(session => mutate(session, 'post', route, { version: 3, decision: 'A_CONFIRMAR', reason: 'Concurrent review' })));
+    expect(races.map(r => r.status).sort()).toEqual([200, 409]);
+    expect(await db.documentReview.count({ where: { candidateId: created.body.id } })).toBe(4);
+    const second = (await viewer.agent.get('/api/v1' + route + '?limit=2&cursor=2').expect(200)).body;
+    expect(second.items.map((r: any) => r.version)).toEqual([1]);
+    expect(second.nextCursor).toBeNull();
+    for (const query of ['limit=0', 'limit=101', 'cursor=0', 'cursor=1.5', 'cursor=999', 'extra=true']) await viewer.agent.get('/api/v1' + route + '?' + query).expect(400);
+    await viewer.agent.get('/api/v1/document-candidates/missing/reviews').expect(404);
+    const page = (await viewer.agent.get('/api/v1/document-candidates/page').expect(200)).body;
+    expect(page.items[0].reviews).toHaveLength(1);
+    expect(page.items[0].reviews[0].version).toBe(4);
+    expect((await viewer.agent.get('/api/v1/document-candidates').expect(200)).body[0].reviews).toHaveLength(4);
+    expect(await db.stockMovement.count()).toBe(0);
+  });
+});
+
+
+describe('assisted document finding review', () => {
+  it('pages AI findings, records human decisions by role and never creates candidates or stock', async () => {
+    const admin = await login(), tech = await login('tecnico'), viewer = await login('consulta');
+    const revision = await db.documentRevision.create({ data: { sourceId: 'SRC-AI', title: 'John Deere synthetic source', sha256: 'd'.repeat(64) } });
+    const run = await db.documentAnalysisRun.create({ data: { revisionId: revision.id, analyzerId: 'test-analyzer', analyzerVersion: 'v1', summary: { family: 'John Deere' } } });
+    await db.documentFinding.createMany({ data: [
+      { id: 'finding-a', runId: run.id, kind: 'PART_CANDIDATE', code: 'RE12345', name: 'Posible filtro', partNumber: 'A_CONFIRMAR', unit: 'u', locator: 'page:4', applicability: 'John Deere', confidence: 'MEDIA', evidence: { sourceId: 'SRC-AI', sha256: 'd'.repeat(64), textLocator: 'page:4', snippet: 'filtro RE12345', category: 'FILTRO', relevance: 'ALTA', provenanceKind: 'TABLA_REPUESTOS' }, warnings: ['REVISION_HUMANA_REQUERIDA'], createdAt: new Date('2100-01-01T00:00:00Z') },
+      { id: 'finding-b', runId: run.id, kind: 'OCR_REQUIRED', code: 'A_CONFIRMAR', name: 'OCR pendiente', partNumber: 'A_CONFIRMAR', unit: 'u', locator: 'page:9', applicability: 'John Deere', confidence: 'ALTA', evidence: { sourceId: 'SRC-AI', sha256: 'd'.repeat(64), textLocator: 'page:9', snippet: '' }, warnings: ['OCR_REQUERIDO_ANTES_DE_CONFIRMAR'], createdAt: new Date('2099-01-01T00:00:00Z') },
+    ] });
+    await request(app).get('/api/v1/document-candidates/findings/page').expect(401);
+    const first = (await viewer.agent.get('/api/v1/document-candidates/findings/page?limit=1&decision=A_CONFIRMAR&sourceId=SRC-AI').expect(200)).body;
+    expect(first.items).toHaveLength(1);
+    expect(first.items[0]).toMatchObject({ id: 'finding-a', partNumber: 'A_CONFIRMAR', stockEffect: 'NONE', run: { revision: { sourceId: 'SRC-AI', sha256: 'd'.repeat(64) } } });
+    expect(first.nextCursor).toBe('finding-a');
+    const categorized = (await viewer.agent.get('/api/v1/document-candidates/findings/page?category=FILTRO&relevance=ALTA&provenanceKind=TABLA_REPUESTOS').expect(200)).body;
+    expect(categorized.items.map((row: any) => row.id)).toEqual(['finding-a']);
+    const second = (await viewer.agent.get('/api/v1/document-candidates/findings/page?limit=1&cursor=finding-a&decision=A_CONFIRMAR&sourceId=SRC-AI').expect(200)).body;
+    expect(second.items.map((row: any) => row.id)).toEqual(['finding-b']);
+    await viewer.agent.get('/api/v1/document-candidates/findings/page?cursor=missing').expect(400);
+    await mutate(viewer, 'post', '/document-candidates/findings/finding-a/reviews', { decision: 'REJECTED', reason: 'viewer' }).expect(403);
+    await mutate(tech, 'post', '/document-candidates/findings/finding-a/reviews', { decision: 'REJECTED', reason: '' }).expect(400);
+    const reviewed = await mutate(tech, 'post', '/document-candidates/findings/finding-a/reviews', { decision: 'OCR_REQUIRED', reason: 'La página necesita OCR visual' }).expect(200);
+    expect(reviewed.body).toMatchObject({ id: 'finding-a', reviewStatus: 'OCR_REQUIRED', reviews: [{ decision: 'OCR_REQUIRED', reason: 'La página necesita OCR visual' }] });
+    await mutate(admin, 'post', '/document-candidates/findings/finding-a/reviews', { decision: 'CONFLICT', reason: 'Conflicto con otra fuente' }).expect(200);
+    const filtered = (await viewer.agent.get('/api/v1/document-candidates/findings/page?decision=CONFLICT').expect(200)).body;
+    expect(filtered.items.map((row: any) => row.id)).toContain('finding-a');
+    await mutate(viewer, 'post', '/document-candidates/findings/finding-a/candidate').expect(403);
+    await mutate(admin, 'post', '/document-candidates/findings/finding-b/candidate').expect(422);
+    const derivationKey = randomUUID();
+    const derived = await mutate(admin, 'post', '/document-candidates/findings/finding-a/candidate', { reason: 'Crear borrador con la evidencia disponible' }, derivationKey).expect(201);
+    const repeated = await mutate(admin, 'post', '/document-candidates/findings/finding-a/candidate', { reason: 'Crear borrador con la evidencia disponible' }, derivationKey).expect(201);
+    expect(repeated.body.id).toBe(derived.body.id);
+    expect(derived.body).toMatchObject({ code: 'RE12345', name: 'Posible filtro', partNumber: 'A_CONFIRMAR', unit: 'u', locator: 'page:4', applicability: 'John Deere', revision: { sourceId: 'SRC-AI', sha256: 'd'.repeat(64) } });
+    expect(await db.documentCandidate.count()).toBe(1);
+    expect(await db.documentFindingReview.count({ where: { findingId: 'finding-a', decision: 'CREATE_CANDIDATE' } })).toBe(1);
+    expect(await db.stockMovement.count()).toBe(0);
+    await expect(db.documentFindingReview.updateMany({ data: { reason: 'alterado' } })).rejects.toThrow();
   });
 });

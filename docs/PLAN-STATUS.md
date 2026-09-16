@@ -90,3 +90,5 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 | P084 | Administrar proveedores desde UI | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 
 Superficies contrastadas: schema.prisma; apps/api/src (app.ts, auth.ts, candidate-import.ts, config.ts, db.ts, document-intelligence.ts, document-review.ts, documents.ts, errors.ts, index.ts, maintenance.ts, openapi.ts, seed.ts); apps/web/src; pruebas de aceptación/documentales; scripts de operaciones. Priorización: paginación/revisión visual dirigida del módulo, fuente original segura, revisión acotada del lote y aplicación transaccional sin stock. Planes y recursos avanzan por incrementos propios.
+
+Incremento de historial (rama feat/document-review-history): P053 amplía consulta persistente con historial paginado y nombre actual del responsable; P007 conserva pendiente OpenAPI. Prueba concurrente de decisiones aprobada (200/409, sin doble revisión). 44 pruebas, typecheck y build aprobados; navegador/despliegue de este incremento pendientes. Los estados globales de tareas permanecen parciales.

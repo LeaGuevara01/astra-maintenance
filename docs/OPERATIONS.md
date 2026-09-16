@@ -1,33 +1,33 @@
-> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
+# Operaciones del piloto
 
-# Operaciones del piloto — estado del checkpoint
+Índice operativo. Los scripts trabajan con contextos aislados bajo `.runtime`; este documento no constituye autorización para producción ni para datos reales.
 
-Los scripts de despliegue están escritos y el piloto fue verificado en staging sintético. Este checkpoint no constituye una release de producción ni autoriza operar datos reales.
+## Runbooks
 
-| Script | Función | Verificación actual |
-|---|---|---|
-| Prepare.ps1 | npm ci, credenciales locales, PostgreSQL por entorno, migración y seed | Ejecutado en dos worktrees temporales; reasignó puertos ocupados y persistió contextos aislados |
-| Start-Dev.ps1 | API y frontend nativos con puertos propios | Ejecutado en dos worktrees temporales en paralelo; ambos expusieron web y API sobre puertos distintos |
-| Verify.ps1 | base de test aislada, migraciones, typecheck, tests, build | Ejecutado; pasó sobre el commit limpio `2ef666a` |
-| Deploy-Staging.ps1 | lock, commit limpio, build, migración, seed opcional, health/version | Ejecutado; staging sintético activo en `http://localhost:4380` con commit `b21b347` |
-| Backup.ps1 | pg_dump binario, SHA256, retención | Ejecutado; dump SHA-256 verificado y retención local conservada |
-| Restore-Check.ps1 | restauración de ensayo | Ejecutado con backup real; restauró en proyecto Compose y volumen independientes y rechazó un dump corrupto por checksum |
-| Rollback-Staging.ps1 | imagen anterior con digest y datos preservados | Ejecutado entre `32ba952` y `2ef666a`; preservó el asset sonda `ASTRA-RB-031857` |
-| New-Worktree.ps1 | rama y directorio independientes | Crea además contextos dev/test aislados con puertos persistidos; validado con dos worktrees completos en paralelo |
-| Enable-LanStaging.ps1 | HTTPS con CA interna y cookie Secure | Escrito; no ejecutado |
-| Register-Backup.ps1 | tarea diaria a las 02:00 | No registrada todavía |
+- [Desarrollo local](04-operations/local-development.md)
+- [Verificación](04-operations/verification.md)
+- [Staging sintético](04-operations/staging.md)
+- [Backup y prueba de restauración](04-operations/backup-restore.md)
+- [Rollback de staging](04-operations/rollback.md)
 
-## Inicio de la próxima sesión
-Usar el directorio del repositorio piloto, comprobar git status y leer HANDOFF.md. ASTRA-005 está cerrado en staging; el siguiente foco natural es ASTRA-006, manteniendo la revisión humana para cualquier conclusión técnica.
+## Inicio de sesión de trabajo
 
-New-Worktree.ps1 ahora deja preparados los contextos locales dev/test del nuevo worktree. Prepare.ps1, Verify.ps1 y Start-Dev.ps1 revalidan puertos mutables antes de escribir .runtime para evitar colisiones al reutilizar un entorno ya preparado.
-El ensayo paralelo de worktrees dejó dos señales útiles: el puerto `db` de `dev` puede reasignarse si el preferido ya fue ocupado por otro entorno del mismo checkout, y esa reasignación queda persistida en `.runtime/dev/config.json` para el siguiente arranque.
+1. Confirmar directorio, rama, `git status` y `git rev-parse HEAD`.
+2. Leer `docs/README.md` y `CURRENT-STATUS.md`.
+3. Elegir el runbook del objetivo; no mezclar contextos dev/test/staging.
+4. Confirmar Docker mediante respuesta del servidor, no sólo por la ventana de Desktop.
+5. Mantener secretos, dumps, evidencia local y originales en `.runtime` o almacenamiento autorizado.
+
+## Identidad y seguridad
+
+- Checkout HEAD, SHA verificado y SHA desplegado se informan por separado.
+- Usar sólo migraciones versionadas; nunca `db push` sobre datos operativos.
+- Test sólo opera bases `astra_test` o `test_*`.
+- No ejecutar Docker prune global ni borrar volúmenes como parte de recuperación rutinaria.
+- Merge a `main` y producción requieren aprobación humana.
 
 ## Secretos
-Get-AstraContext genera secretos distintos por entorno y los guarda en .runtime/<entorno>/config.json y .env. El seed exige contraseñas de 12 o más caracteres y preserva usuarios/datos existentes.
-ADMIN: admin@astra.local; TECHNICIAN: tecnico@astra.local; VIEWER: consulta@astra.local. La contraseña debe leerse de la configuración del entorno correspondiente, nunca hardcodearse.
+`Get-AstraContext` genera secretos distintos por entorno. El seed exige contraseñas de 12 o más caracteres y preserva usuarios/datos existentes. Las identidades sintéticas están documentadas en el contrato API; las contraseñas se leen del contexto correspondiente y nunca se hardcodean.
 
 ## Límites
-El contenedor de test puede detenerse después de probar; no borrar volúmenes sin intención explícita de descartar datos.
-No ejecutar Docker prune global ni tocar SPARE.
-GitHub no pudo activar protecciones de main en repositorios privados con el plan actual. La aprobación humana sigue siendo un límite del workflow.
+ASTRA-006 y ASTRA-007 son antecedentes históricos, no próximos pasos. La protección de `main` puede depender del plan de GitHub; la aprobación humana sigue siendo un límite del workflow aunque la plataforma no la fuerce.

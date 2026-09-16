@@ -1,20 +1,14 @@
-> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
-
-## Flujo documental actual
-
-Inteligencia documental permite registrar candidatos (ADMIN), guardar decisiones con motivo (ADMIN/TECHNICIAN), consultar historial y comparar contra el catálogo (incluido VIEWER). Las decisiones sobreviven a recarga. Fuente+SHA identifica la revisión; un cambio requiere nueva evidencia. No se aplica catálogo ni stock. No hay datos hardcodeados de revisión.
-
-## Antecedentes históricos
-
-
 # ASTRA Maintenance
 
 Piloto preventivo de mantenimiento para Windows y red local. React/Vite, Express/TypeScript, Prisma/PostgreSQL.
 
-## Checkpoint
-Código API y web implementado e integrado en `main` (`b21b347`). Pasan 21 tests PostgreSQL, typecheck y build en la verificación registrada. Staging sintético local, backup/restore aislado, rollback, E2E de tres roles y revisión visual PDF A6/A4 ya quedaron ejecutados sobre datos sintéticos.
+## Estado
 
-Leer [continuidad](docs/HANDOFF.md), [roadmap ampliado](docs/ROADMAP-EXTENDED.md), [contrato API](docs/API-CONTRACT.md), [operaciones](docs/OPERATIONS.md) y [referencias técnicas](docs/TECHNICAL-REFERENCE.md).
+La línea funcional más reciente de este checkout incluye revisión documental persistente, hallazgos asistidos y el primer flujo contextual `DocumentFinding → DocumentCandidate`. No aplica candidatos al catálogo ni modifica stock automáticamente.
+
+El estado actual, el último SHA verificado y el SHA desplegado se mantienen separados en [docs/CURRENT-STATUS.md](docs/CURRENT-STATUS.md). La documentación completa comienza en [docs/README.md](docs/README.md).
+
+Los checkpoints `b21b347`, `3b2223d`, `52b1220`, `2b6cd68` y `a6cf1a8` conservan evidencia histórica con distinto alcance. Ninguno debe presentarse como identidad actual sin consultar [verificación](docs/VERIFICATION.md) y los [registros por incremento](docs/07-evidence/releases/README.md).
 
 ## Verificar
 ```powershell

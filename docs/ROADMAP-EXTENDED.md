@@ -1,4 +1,4 @@
-> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
+> Estado revisado el 2026-09-16: roadmap de alcance futuro con puntos de partida históricos. No demuestra implementación ni ordena repetir checks. Para estado actual consultar `CURRENT-STATUS.md`, `NEXT-TASK.md`, `HANDOFF.md` y `VERIFICATION.md`.
 
 # ASTRA — Plan maestro ampliado y continuidad
 Versión del plan: 0.2 · Actualizado: 7 de septiembre de 2026
