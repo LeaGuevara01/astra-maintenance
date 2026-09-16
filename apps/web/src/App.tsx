@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Activity, ArrowRight, Bell, ClipboardList, FileSearch, Gauge, LayoutDashboard, Layers3, LoaderCircle, LogOut, Menu, Package, RefreshCw, ShieldCheck, Truck, X } from 'lucide-react';
-import { api, ApiError, setCsrf } from './api';
+import { api, ApiError, setCsrf, StaleSessionError } from './api';
 import type { AppData, Asset, Audit, Dashboard, Order, Part, Plan, Session, Version } from './types';
 import { Badge, ErrorBox, Field, label, Loading, Modal, number } from './ui';
 import { AssetsView, AuditView, InventoryView, OrdersView, Overview, PlansView } from './Views';
@@ -20,14 +20,22 @@ type Dialog = 'asset' | 'generate' | { kind: 'reading'; asset: Asset } | { kind:
 export default function App() {
   const [session, setSession] = useState<Session | null>(null); const [checking, setChecking] = useState(true); const [data, setData] = useState<AppData | null>(null); const [error, setError] = useState<unknown>(null); const [refreshing, setRefreshing] = useState(false); const [sessionMessage, setSessionMessage] = useState('');
   const [page, setPage] = useState(routePage); const [selectedOrder, setSelectedOrder] = useState<string | null>(routeOrder); const [mobileOpen, setMobileOpen] = useState(false); const [dialog, setDialog] = useState<Dialog>(null); const [assetId, setAssetId] = useState(''); const [toast, setToast] = useState('');
+  const refreshRevision = useRef(0);
   useEffect(() => { const syncRoute = () => { setPage(routePage()); setSelectedOrder(routeOrder()); }; window.addEventListener('popstate', syncRoute); return () => window.removeEventListener('popstate', syncRoute); }, []);
   useEffect(() => { let active = true; api<Session>('/auth/me').then(value => { if (active) { setSession(value); setCsrf(value.csrfToken); } }).catch(err => { if (active && !(err instanceof ApiError && err.status === 401)) setSessionMessage(err.message); }).finally(() => { if (active) setChecking(false); }); const expired = () => { setSession(null); setData(null); setCsrf(''); setDialog(null); setSessionMessage('La sesión terminó. Ingresá nuevamente para continuar.'); }; window.addEventListener('astra:session-expired', expired); return () => { active = false; window.removeEventListener('astra:session-expired', expired); }; }, []);
   const refresh = useCallback(async () => {
+    const revision = ++refreshRevision.current;
     setRefreshing(true);
     try {
       const [dashboard, assets, plans, inventory, orders, audit, version] = await Promise.all([api<Dashboard>('/dashboard'), api<Asset[]>('/assets'), api<Plan[]>('/plans'), api<Part[]>('/inventory'), api<Order[]>('/orders'), api<Audit[]>('/audit'), api<Version>('/version')]);
+      if (revision !== refreshRevision.current) return;
       setData({ dashboard, assets, plans, inventory, orders, audit, version }); setError(null);
-    } catch (err) { setError(err); throw err; } finally { setRefreshing(false); }
+    } catch (err) {
+      if (revision !== refreshRevision.current || err instanceof StaleSessionError) return;
+      setError(err); throw err;
+    } finally {
+      if (revision === refreshRevision.current) setRefreshing(false);
+    }
   }, []);
   useEffect(() => { if (session) void refresh().catch(() => {}); }, [session, refresh]);
   useEffect(() => { if (!toast) return; const timer = setTimeout(() => setToast(''), 5000); return () => clearTimeout(timer); }, [toast]);
