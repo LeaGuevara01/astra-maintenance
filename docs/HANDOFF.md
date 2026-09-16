@@ -2,13 +2,17 @@
 
 ## Vertical slice UI de entidades — 2026-09-16
 
-Solicitud: ejecutar la arquitectura UI planificada de forma progresiva. Implementado el primer slice `DocumentFinding → DocumentCandidate` en el árbol de trabajo de `feat/document-review-history`; sin commit, push, despliegue ni migración nueva.
+Solicitud: ejecutar la arquitectura UI planificada de forma progresiva. Implementado el primer slice `DocumentFinding → DocumentCandidate` en `feat/document-review-history`; sin migración nueva.
 
 El frontend incorpora primitives tipadas de entidad/badge/fila/drop zone, adapta hallazgos documentales, compacta los siete filtros bajo “Filtros avanzados”, limita el scan a cinco badges, separa inspector rápido de evidencia completa y agrega preview de derivación. Drag & drop sólo está disponible para ADMIN y `PART_CANDIDATE`; en móvil se oculta. La acción “Preparar derivación” ofrece el mismo recorrido por click/teclado. Ambos caminos confirman antes de usar el endpoint idempotente existente. No cambió API, Prisma, stock ni reglas de permisos.
 
 Verificación: `scripts/Verify.ps1 -SkipInstall` aprobó migraciones existentes sobre `astra_test`, typecheck API/web, 52/52 pruebas y build API/web. La primera ejecución se detuvo por un error TypeScript en `onDragEnd`; fue corregido y no se atribuye aprobación a ese intento.
 
-Revisión visual dirigida: runtime local aislado `http://127.0.0.1:4310`, entorno test y `commit=unknown`, con base sintética separada `astra_ui_slice`. ADMIN abrió `/documents`, comprobó filtros colapsados, cinco badges, inspector, evidencia colapsable y preview por click; confirmó una derivación. Lectura posterior: un `DocumentCandidate`, hallazgo `CREATE_CANDIDATE`, cero `StockMovement`. No se validó el gesto de arrastre por automatización ni se revisaron TECHNICIAN/VIEWER en navegador; la alternativa accesible por click sí fue ejercitada. Esto no constituye staging.
+Revisión visual inicial: runtime local aislado `http://127.0.0.1:4310`, entorno test y `commit=unknown`, con base sintética separada `astra_ui_slice`. ADMIN abrió `/documents`, comprobó filtros colapsados, cinco badges, inspector, evidencia colapsable y preview por click; confirmó una derivación. Lectura posterior: un `DocumentCandidate`, hallazgo `CREATE_CANDIDATE`, cero `StockMovement`. Esta evidencia inicial no constituye staging.
+
+Commit funcional `a6cf1a8a38aa6670066fa477dfe1f4c96c199d87`: Verify limpio aprobó cinco migraciones existentes, 52/52 pruebas, typecheck y build API/web. Deploy-Staging creó backup `.runtime/backups/staging/20260916-035235-217.dump`, aplicó cero migraciones nuevas y publicó ese SHA. `/health/ready`, `/api/v1/version` y footer coincidieron.
+
+Revisión dirigida sobre staging `http://localhost:4380/documents`: ADMIN comprobó lista compacta, cinco badges, filtros avanzados colapsados, inspector y preview de derivación; canceló antes de persistir. TECHNICIAN conservó lectura y revisión, sin drop target ni acción de derivar. VIEWER mostró sólo lectura, sin textarea ni acciones. La ventana automatizada fue menor a 800 px: validó el fallback responsive y por click, pero no el gesto físico de drag & drop, oculto intencionalmente en ese breakpoint. Se conservaron tres candidatos visibles; no se confirmó ninguna mutación en staging.
 
 ## Incremento: analizador documental dry-run
 

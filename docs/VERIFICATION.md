@@ -8,6 +8,10 @@ Comando final: `scripts/Verify.ps1 -SkipInstall`. Resultado: PASS. Prisma genera
 
 Revisión dirigida en navegador sobre runtime aislado `http://127.0.0.1:4310`, environment test, commit `unknown`, base sintética separada `astra_ui_slice`: ADMIN visualizó un `PART_CANDIDATE` con cinco badges, inspector rápido, evidencia Nivel 3 colapsable, filtros avanzados colapsados y preview de asociación. La alternativa por click confirmó la derivación. Estado posterior: un candidato, hallazgo `CREATE_CANDIDATE`, cero movimientos de stock. No se ejercitó el gesto físico de drag & drop ni roles TECHNICIAN/VIEWER en navegador. No hubo despliegue ni evidencia de staging.
 
+Commit funcional limpio: `a6cf1a8a38aa6670066fa477dfe1f4c96c199d87`. `Verify.ps1 -SkipInstall` volvió a aprobar 52/52 pruebas, typecheck y build API/web sobre ese SHA. `Deploy-Staging.ps1 -SkipVerify` creó backup `.runtime/backups/staging/20260916-035235-217.dump`, aplicó las migraciones existentes sin pendientes y publicó el commit. Health ready, API version y footer coincidieron en `a6cf1a8`.
+
+Revisión de staging en Edge: ADMIN mostró la capacidad de preparar derivación sólo para `PART_CANDIDATE`, abrió el preview y canceló sin persistir. TECHNICIAN leyó la misma cola y mantuvo acciones de revisión, sin derivación/drop target. VIEWER no mostró motivo ni acciones de revisión. El viewport automatizado fue menor a 800 px, por lo cual el drop target quedó oculto según el CSS responsive y se validó la alternativa por click; el gesto físico de arrastre desktop permanece sin cobertura de navegador. Los tres candidatos visibles se conservaron y no se confirmó ninguna operación de escritura durante este recorrido.
+
 ## Base anterior y staging comprobado
 
 SHA: 3b2223de05f4a514ca4c664cefa81019373c3974.
