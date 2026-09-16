@@ -1,5 +1,15 @@
 # Handoff vigente — 2026-09-15
 
+## Vertical slice UI de entidades — 2026-09-16
+
+Solicitud: ejecutar la arquitectura UI planificada de forma progresiva. Implementado el primer slice `DocumentFinding → DocumentCandidate` en el árbol de trabajo de `feat/document-review-history`; sin commit, push, despliegue ni migración nueva.
+
+El frontend incorpora primitives tipadas de entidad/badge/fila/drop zone, adapta hallazgos documentales, compacta los siete filtros bajo “Filtros avanzados”, limita el scan a cinco badges, separa inspector rápido de evidencia completa y agrega preview de derivación. Drag & drop sólo está disponible para ADMIN y `PART_CANDIDATE`; en móvil se oculta. La acción “Preparar derivación” ofrece el mismo recorrido por click/teclado. Ambos caminos confirman antes de usar el endpoint idempotente existente. No cambió API, Prisma, stock ni reglas de permisos.
+
+Verificación: `scripts/Verify.ps1 -SkipInstall` aprobó migraciones existentes sobre `astra_test`, typecheck API/web, 52/52 pruebas y build API/web. La primera ejecución se detuvo por un error TypeScript en `onDragEnd`; fue corregido y no se atribuye aprobación a ese intento.
+
+Revisión visual dirigida: runtime local aislado `http://127.0.0.1:4310`, entorno test y `commit=unknown`, con base sintética separada `astra_ui_slice`. ADMIN abrió `/documents`, comprobó filtros colapsados, cinco badges, inspector, evidencia colapsable y preview por click; confirmó una derivación. Lectura posterior: un `DocumentCandidate`, hallazgo `CREATE_CANDIDATE`, cero `StockMovement`. No se validó el gesto de arrastre por automatización ni se revisaron TECHNICIAN/VIEWER en navegador; la alternativa accesible por click sí fue ejercitada. Esto no constituye staging.
+
 ## Incremento: analizador documental dry-run
 
 Solicitud del usuario: documentar y empezar implementación de revisión automática con analizadores IA. Agregado plan en docs/DOCUMENT-AI-REVIEW-PLAN.md y primer módulo local sin proveedor externo: apps/api/src/document-analysis.ts. El comando npm run documents:analyze-sample lee .runtime/sources/index.json, analiza textos extraídos de una muestra y escribe analyses.json, findings.json y summary.json bajo .runtime/document-analysis. Los hallazgos nacen A_CONFIRMAR, stockEffect:NONE, con sourceId, sha256, locator, snippet y advertencias. No usa base de datos, no crea candidatos y no modifica stock.

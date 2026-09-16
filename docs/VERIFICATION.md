@@ -2,6 +2,12 @@
 
 Actualizado: 2026-09-15. Este archivo separa evidencia ejecutada de pendientes. El historial detallado anterior permanece en Git.
 
+## 2026-09-16 — vertical slice UI de entidades
+
+Comando final: `scripts/Verify.ps1 -SkipInstall`. Resultado: PASS. Prisma generate, cinco migraciones existentes en `astra_test`, typecheck API/web, 52/52 pruebas y build API/web aprobados. El primer intento falló en typecheck porque `EntityRow` no desestructuraba `onDragEnd`; se corrigió antes de la ejecución aprobada.
+
+Revisión dirigida en navegador sobre runtime aislado `http://127.0.0.1:4310`, environment test, commit `unknown`, base sintética separada `astra_ui_slice`: ADMIN visualizó un `PART_CANDIDATE` con cinco badges, inspector rápido, evidencia Nivel 3 colapsable, filtros avanzados colapsados y preview de asociación. La alternativa por click confirmó la derivación. Estado posterior: un candidato, hallazgo `CREATE_CANDIDATE`, cero movimientos de stock. No se ejercitó el gesto físico de drag & drop ni roles TECHNICIAN/VIEWER en navegador. No hubo despliegue ni evidencia de staging.
+
 ## Base anterior y staging comprobado
 
 SHA: 3b2223de05f4a514ca4c664cefa81019373c3974.
