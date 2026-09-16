@@ -39,6 +39,7 @@ jobs:
           node-version: 22.20.0
           cache: npm
       - run: npm ci
+      - run: npm run agents:check
       - run: npm run db:generate
       - run: npm run db:migrate
       - run: npm run typecheck

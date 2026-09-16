@@ -19,6 +19,7 @@
     "db:seed": "npm run seed --workspace @astra/api",
     "documents:normalize": "tsx tools/normalize-document-index.ts",
     "documents:analyze-sample": "tsx tools/analyze-document-sample.ts",
+    "agents:check": "node tools/validate-agent-coordination.mjs",
     "dev": "concurrently --kill-others \"npm run dev --workspace @astra/api\" \"npm run dev --workspace @astra/web\""
   },
   "devDependencies": {
