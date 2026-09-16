@@ -350,3 +350,33 @@ describe('document candidate pagination', () => {
     expect(Array.isArray((await session.agent.get('/api/v1/document-candidates').expect(200)).body)).toBe(true);
   });
 });
+
+describe('document review history pagination', () => {
+  it('bounds history, resolves names and continues despite concurrent decisions', async () => {
+    const admin = await login(), tech = await login('tecnico'), viewer = await login('consulta');
+    const created = await mutate(admin, 'post', '/document-candidates', { sourceId: 'HISTORY', title: 'Synthetic history', sha256: 'c'.repeat(64), code: 'HIST', name: 'Fixture', unit: 'u', locator: 'page:1', applicability: 'Synthetic' }).expect(201);
+    const route = `/document-candidates/${created.body.id}/reviews`;
+    await request(app).get('/api/v1' + route).expect(401);
+    expect((await viewer.agent.get('/api/v1' + route).expect(200)).body).toEqual({ items: [], nextCursor: null });
+    for (let version = 0; version < 3; version++) await mutate(tech, 'post', route, { version, decision: 'A_CONFIRMAR', reason: `Review ${version}` }).expect(200);
+    const first = (await viewer.agent.get('/api/v1' + route + '?limit=2').expect(200)).body;
+    expect(first.items.map((r: any) => r.version)).toEqual([3, 2]);
+    const actor = await db.user.findUniqueOrThrow({ where: { email: 'tecnico@astra.local' } });
+    expect(first.items[0]).toMatchObject({ actorId: actor.id, actorName: actor.name });
+    expect(first.items[0]).not.toHaveProperty('passwordHash');
+    expect(first.nextCursor).toBe(2);
+    const races = await Promise.all([admin, tech].map(session => mutate(session, 'post', route, { version: 3, decision: 'A_CONFIRMAR', reason: 'Concurrent review' })));
+    expect(races.map(r => r.status).sort()).toEqual([200, 409]);
+    expect(await db.documentReview.count({ where: { candidateId: created.body.id } })).toBe(4);
+    const second = (await viewer.agent.get('/api/v1' + route + '?limit=2&cursor=2').expect(200)).body;
+    expect(second.items.map((r: any) => r.version)).toEqual([1]);
+    expect(second.nextCursor).toBeNull();
+    for (const query of ['limit=0', 'limit=101', 'cursor=0', 'cursor=1.5', 'cursor=999', 'extra=true']) await viewer.agent.get('/api/v1' + route + '?' + query).expect(400);
+    await viewer.agent.get('/api/v1/document-candidates/missing/reviews').expect(404);
+    const page = (await viewer.agent.get('/api/v1/document-candidates/page').expect(200)).body;
+    expect(page.items[0].reviews).toHaveLength(1);
+    expect(page.items[0].reviews[0].version).toBe(4);
+    expect((await viewer.agent.get('/api/v1/document-candidates').expect(200)).body[0].reviews).toHaveLength(4);
+    expect(await db.stockMovement.count()).toBe(0);
+  });
+});

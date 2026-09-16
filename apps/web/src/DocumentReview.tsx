@@ -5,6 +5,29 @@ import { Badge } from './ui';
 type Candidate = { id: string; code: string; name: string; partNumber: string; unit: string; locator: string; applicability: string; version: number; revision: { sourceId: string; title: string; sha256: string }; reviews: { id: string; decision: string; reason: string; actorId: string; createdAt: string }[] };
 type CandidatePage = { items: Candidate[]; nextCursor: string | null };
 type Result = { candidateId: string; decision: string; reasons: string[]; proposed: { partNumber: string }; stockEffect: string };
+type ReviewPage = { items: { id: string; decision: string; reason: string; actorId: string; actorName: string | null; createdAt: string }[]; nextCursor: number | null };
+function ReviewHistory({ candidateId }: { candidateId: string }) {
+  const [page, setPage] = useState<ReviewPage>({ items: [], nextCursor: null });
+  const [cursor, setCursor] = useState<number | null>(null), [previous, setPrevious] = useState<(number | null)[]>([]);
+  const [loading, setLoading] = useState(true), [error, setError] = useState(''), [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let current = true;
+    setLoading(true); setError(''); setPage({ items: [], nextCursor: null });
+    api<ReviewPage>(`/document-candidates/${encodeURIComponent(candidateId)}/reviews?limit=25${cursor === null ? '' : `&cursor=${cursor}`}`)
+      .then(data => { if (current) setPage(data); })
+      .catch(e => { if (current) setError(e.message); })
+      .finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [candidateId, cursor, retry]);
+  return <><h3>Historial de decisiones · página {previous.length + 1}</h3><p>El responsable se muestra con su nombre actual.</p>
+    {loading && <p role="status">Cargando historial…</p>}
+    {error && <div role="alert">{error} <button className="button secondary" onClick={() => setRetry(retry + 1)}>Reintentar historial</button></div>}
+    {!loading && !error && !page.items.length && <p>Sin decisiones registradas.</p>}
+    {page.items.map(review => <p key={review.id}><strong>{review.decision}</strong> · {review.reason}<small>{review.actorName ?? 'Responsable no disponible'} · {new Date(review.createdAt).toLocaleString()}</small></p>)}
+    <div className="decision-buttons"><button className="button secondary" disabled={loading || !previous.length} onClick={() => { setCursor(previous[previous.length - 1]); setPrevious(previous.slice(0, -1)); }}>Decisiones más recientes</button>
+    <button className="button secondary" disabled={loading || page.nextCursor === null} onClick={() => { setPrevious([...previous, cursor]); setCursor(page.nextCursor); }}>Decisiones anteriores</button></div>
+  </>;
+}
 export default function DocumentReviewView({ role }: { role: Role }) {
   const [rows, setRows] = useState<Candidate[]>([]), [selected, select] = useState('');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [reason, setReason] = useState('');
@@ -25,7 +48,7 @@ export default function DocumentReviewView({ role }: { role: Role }) {
     <div className="review-grid"><section className="panel panel-content"><h2>Candidatos · página {previous.length + 1}</h2>{!rows.length && <p>No hay candidatos registrados.</p>}{rows.map(row => <button key={row.id} className="review-item" onClick={() => { select(row.id); setReason(''); }}><strong>{row.code} · {row.name}</strong><Badge value={row.reviews[0]?.decision ?? 'A_CONFIRMAR'}/></button>)}<div className="decision-buttons"><button className="button secondary" disabled={busy || !previous.length} onClick={() => { setCursor(previous[previous.length-1]); setPrevious(previous.slice(0,-1)); }}>Anterior</button><button className="button secondary" disabled={busy || !nextCursor} onClick={() => { setPrevious([...previous,cursor]); setCursor(nextCursor); }}>Siguiente</button></div><p>{rows.length} candidatos en esta página. {nextCursor ? 'Hay más resultados.' : 'Fin de la lista.'}</p></section>
     {active && <section className="panel panel-content"><h2>{active.name}</h2><p>{active.partNumber} · {active.unit}</p><p>{active.revision.title} · {active.revision.sourceId}</p><p className="mono" style={{overflowWrap:'anywhere'}}>{active.revision.sha256}</p><p>{active.locator} · {active.applicability}</p>
       {role !== 'VIEWER' && <><label className="field">Motivo de la decisión<textarea value={reason} maxLength={1000} onChange={e => setReason(e.target.value)}/></label><div className="decision-buttons">{['A_CONFIRMAR','VALIDADO','RECHAZADO'].map(decision => <button className="button secondary" key={decision} disabled={busy || !reason.trim()} onClick={() => run(() => decide(decision))}>{decision}</button>)}</div></>}
-      <h3>Historial de decisiones</h3>{active.reviews.map(review => <p key={review.id}><strong>{review.decision}</strong> · {review.reason}<small>{review.actorId} · {new Date(review.createdAt).toLocaleString()}</small></p>)}</section>}</div>
+      <ReviewHistory key={`${active.id}:${active.version}`} candidateId={active.id}/></section>}</div>
     <section className="panel panel-content"><h2>Comparación del lote visible con el catálogo</h2><p>Una decisión validada no aplica cambios. El resultado refleja el catálogo al consultar.</p><button className="button primary" disabled={busy || !rows.length} onClick={() => run(async () => { const report = await api<{results: Result[]}>('/document-candidates/dry-run','POST',{ids:rows.map(r=>r.id)}); setResults(report.results); })}>Comparar catálogo</button>{results.map(result => <p key={result.candidateId}><strong>{rows.find(r=>r.id===result.candidateId)?.code}: {result.decision}</strong> · PN propuesto: {result.proposed.partNumber}<small>{result.reasons.join(' · ') || 'Sin conflictos detectados'} · Stock: {result.stockEffect}</small></p>)}</section>
   </>;
 }

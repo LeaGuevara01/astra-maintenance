@@ -16,12 +16,23 @@ export function documentReviewRouter(db: PrismaClient) {
     const anchor = query.cursor ? await db.documentCandidate.findUnique({ where: { id: query.cursor }, select: { id: true, createdAt: true } }) : null;
     assert(!query.cursor || anchor, 400, 'INVALID_CURSOR', 'El cursor no corresponde a un candidato.');
     const rows = await db.documentCandidate.findMany({
-      include, orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], take: query.limit + 1,
+      include: { revision: true, reviews: { orderBy: { version: 'desc' }, take: 1 } }, orderBy: [{ createdAt: 'desc' }, { id: 'asc' }], take: query.limit + 1,
       where: anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { gt: anchor.id } }] } : undefined,
     });
     const hasMore = rows.length > query.limit;
     const items = rows.slice(0, query.limit);
     res.json({ items, nextCursor: hasMore ? items[items.length - 1].id : null });
+  });
+  router.get('/:id/reviews', async (req, res) => {
+    const candidateId = String(req.params.id);
+    const query = z.object({ limit: z.coerce.number().int().min(1).max(100).default(25), cursor: z.coerce.number().int().positive().optional() }).strict().parse(req.query);
+    assert(await db.documentCandidate.findUnique({ where: { id: candidateId }, select: { id: true } }), 404, 'CANDIDATE_NOT_FOUND', 'Candidato inexistente.');
+    if (query.cursor !== undefined) assert(await db.documentReview.findUnique({ where: { candidateId_version: { candidateId, version: query.cursor } }, select: { id: true } }), 400, 'INVALID_CURSOR', 'El cursor no corresponde al historial del candidato.');
+    const rows = await db.documentReview.findMany({ where: { candidateId, ...(query.cursor === undefined ? {} : { version: { lt: query.cursor } }) }, orderBy: { version: 'desc' }, take: query.limit + 1 });
+    const page = rows.slice(0, query.limit);
+    const actors = await db.user.findMany({ where: { id: { in: [...new Set(page.map(row => row.actorId))] } }, select: { id: true, name: true } });
+    const names = new Map(actors.map(actor => [actor.id, actor.name]));
+    res.json({ items: page.map(row => ({ ...row, actorName: names.get(row.actorId) ?? null })), nextCursor: rows.length > query.limit ? page[page.length - 1].version : null });
   });
   router.post('/', roles('ADMIN'), async (req, res) => {
     const input = z.object({ sourceId: text(100), title: text(200), sha256: z.string().regex(/^[a-f0-9]{64}$/), code: text(100), name: text(200), partNumber: text(100).default('A_CONFIRMAR'), unit: text(30), locator: text(200), applicability: text(500) }).strict().parse(req.body);

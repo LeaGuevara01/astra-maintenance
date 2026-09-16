@@ -42,3 +42,11 @@ No se sirven rutas físicas, no se suben originales, no se aplica catálogo ni s
 ## Paginación documental
 
 GET /document-candidates/page?limit=25&cursor=<candidateId>: tres roles autenticados. limit entero 1–100; cursor opcional válido. Respuesta {items,nextCursor}; orden createdAt descendente/id ascendente. Cursor delimita mediante fecha/id del candidato; nuevas altas anteriores al cursor no duplican páginas posteriores. Cursor inexistente: 400 INVALID_CURSOR. El GET anterior conserva su respuesta array para compatibilidad. La UI navega páginas de 25 y compara únicamente el lote visible.
+
+## Historial documental paginado
+
+GET /document-candidates/:id/reviews?limit=25&cursor=<version>: disponible para ADMIN, TECHNICIAN y VIEWER autenticados. limit entero 1–100; cursor entero positivo que debe existir en ese candidato. Devuelve {items,nextCursor}, orden version descendente y continuación exclusiva; las decisiones posteriores no desplazan la continuación. Candidato inexistente: 404 CANDIDATE_NOT_FOUND; cursor inexistente: 400 INVALID_CURSOR.
+
+Cada item conserva id, candidateId, version, decision, reason, actorId y createdAt; añade actorName (nombre actual del usuario o null si no está disponible). No es un snapshot del nombre histórico; la auditoría existente conserva actorName al decidir. No se exponen email ni credenciales. nextCursor es la versión del último item cuando quedan resultados, o null.
+
+GET /document-candidates/page incluye únicamente la última decisión por candidato en reviews. El GET legado /document-candidates conserva su historial completo para compatibilidad. La pantalla carga el historial seleccionado en páginas de 25 y vuelve a la primera al cambiar de candidato o versión.

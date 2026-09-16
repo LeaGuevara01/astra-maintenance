@@ -66,3 +66,9 @@ Fuera de este repositorio se actualizaron cabeceras de planes/checkpoints de out
 
 ## Paginación documental — 2026-09-15
 43 pruebas aprobadas sobre astra_test, typecheck API/web y build aprobados. Cobertura nueva: páginas con timestamp igual, alta posterior sin duplicación de continuación, límites/cursor inválidos y compatibilidad del endpoint anterior. Sin migraciones. La prueba browser de paginación no se ejecutó en este incremento.
+
+## Historial documental — 2026-09-15
+
+Verify.ps1 -SkipInstall aprobado sobre el árbol de trabajo de feat/document-review-history (base 54beabe, dirty=true): 44/44 pruebas, typecheck API/web y build API/web. PostgreSQL aislado astra_test; cuatro migraciones existentes, ninguna pendiente. La prueba añadida cubre paginación por versión, nombres e identidad, autenticación, entradas inválidas, compatibilidad y dos revisores concurrentes (200/409, una sola decisión persistida). git diff --check aprobado.
+
+No se ejecutó navegador ni despliegue de este incremento. verification.json identifica el árbol sucio y no habilita despliegue: se requiere Verify sobre el commit limpio antes de desplegar. No se atribuye esta ejecución a un SHA limpio ni se altera el registro. Próximos checks: navegación dirigida de páginas/historial y despliegue sintético cuando corresponda.

@@ -9,3 +9,9 @@ Staging publicado y comprobado: 52b1220fd2d304d097d05673780461db2b014784 en http
 ## Incremento autónomo — paginación
 
 Autorización y secuencia en AUTONOMOUS-DEVELOPMENT.md. Endpoint aditivo /document-candidates/page y navegación anterior/siguiente de 25 candidatos. Sin migración ni cambios de stock. GET anterior permanece compatible. Test de continuación con fechas iguales, alta concurrente, cursor inválido y límite de página. Los tests ahora reinicializan también las tablas documentales dentro de astra_test para evitar contaminación entre casos.
+
+## Incremento: historial de revisión
+
+Rama feat/document-review-history, base 54beabe (coincidente con origin/main al iniciar). API de historial paginado por versión y UI de 25 decisiones por página; selección/versionado reinicia la navegación y descarta respuestas del historial anterior. Nombre actual del revisor resuelto por ID; ausencias explícitas, sin exponer datos de cuenta. actorId e historial append-only conservados. Listado paginado de candidatos sólo incluye la última decisión; endpoint legado compatible. Sin migraciones ni cambios de stock.
+
+Prueba nueva: historial vacío, autenticación, lectura VIEWER, nombres/IDs, límites/cursor, candidato ausente, continuación frente a decisión concurrente, último estado y compatibilidad. Dos revisores concurrentes producen una sola decisión nueva y un 409 REVIEW_STALE.
