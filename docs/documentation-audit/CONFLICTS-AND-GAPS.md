@@ -6,7 +6,7 @@
 
 - Documento: `README.md`.
 - Declara: código integrado en `main` en `b21b347` y 21 pruebas.
-- Evidencia actual: el checkout está en `c8e2efb`; `origin/main` observado está en `54beabe`; el árbol local tiene suite 54/54 y los registros conservan staging histórico de `a6cf1a8`.
+- Evidencia actual: `main`, `origin/main`, verificación limpia y staging sintético coinciden en `a0c9178`; los checkpoints anteriores permanecen como evidencia histórica.
 - Clasificación: `Previous version` dentro de un documento todavía útil.
 - Estado: resuelto. README enlaza estado, verificación y registros por incremento sin presentar un checkpoint histórico como identidad actual.
 
@@ -36,7 +36,7 @@
 ### CONFLICT-005 — OpenAPI público incompleto frente al contrato
 
 - Contrato: `API-CONTRACT.md` incluye revisión documental, paginación, fuentes, hallazgos y derivación.
-- Implementación: `apps/api/src/openapi.ts` no constituye una especificación exhaustiva de todos los endpoints y esquemas documentales; `NEXT-TASK.md` también lo reconoce.
+- Implementación histórica: antes de ASTRA-DOC-001, `apps/api/src/openapi.ts` no constituía una especificación exhaustiva de todos los endpoints y esquemas documentales.
 - Clasificación: contrato narrativo vigente, representación OpenAPI parcial.
 - Estado: resuelto por `ASTRA-DOC-001`. Las diez operaciones documentales y sus schemas se añadieron; `openapi-parity.test.ts` exige igualdad método+ruta y referencias locales válidas. Permanece como mejora la validación semántica independiente OpenAPI 3.1.
 

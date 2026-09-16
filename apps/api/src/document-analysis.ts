@@ -236,5 +236,3 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     warnings,
   };
 }
-
-

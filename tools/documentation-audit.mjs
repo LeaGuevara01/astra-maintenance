@@ -25,7 +25,7 @@ const canonical = new Set([
   'docs/OPERATIONS.md', 'docs/VERIFICATION.md', 'docs/HANDOFF.md', 'prisma/schema.prisma'
 ]);
 const historical = /^(docs\/(?:archive\/tasks\/(?:ASTRA-006|ASTRA-007(?:-REVIEW)?|TASK-ASTRA-001)|07-evidence\/releases\/2026-09-(?:15|16)\/[^/]+)\.md)$/;
-const partial = new Set(['docs/NEXT-TASK.md', 'docs/PLAN-STATUS.md', 'docs/ROADMAP-EXTENDED.md', 'docs/DOCUMENT-AI-REVIEW-PLAN.md', 'docs/UI-ARCHITECTURE-MIGRATION-PLAN.md', 'docs/CORPUS-ANALYSIS.md', 'docs/TECHNICAL-REFERENCE.md', 'docs/documentation-audit/ARCHIVE-MIGRATION-PLAN.md', 'docs/documentation-audit/LOT-3-EXTRACTION-DESIGN.md']);
+const partial = new Set(['docs/NEXT-TASK.md', 'docs/PLAN-STATUS.md', 'docs/ROADMAP-EXTENDED.md', 'docs/DOCUMENT-AI-REVIEW-PLAN.md', 'docs/UI-ARCHITECTURE-MIGRATION-PLAN.md', 'docs/CORPUS-ANALYSIS.md', 'docs/TECHNICAL-REFERENCE.md', 'docs/05-planning/ASTRA-010-secure-source-reader.md', 'docs/documentation-audit/ARCHIVE-MIGRATION-PLAN.md', 'docs/documentation-audit/LOT-3-EXTRACTION-DESIGN.md']);
 
 function classify(path) {
   const e = extname(path).toLowerCase();

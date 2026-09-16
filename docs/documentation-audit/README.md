@@ -1,6 +1,6 @@
 # Auditoría documental integral — base ASTRA siguiente versión
 
-Auditoría no destructiva realizada el 2026-09-16 sobre `feat/document-review-history` en `c8e2efb3854caeca92e09a6a46912827775234b9`. El inventario no afirma identidad con `origin/main`, otras ramas ni staging. La documentación del sistema y el corpus externo se contabilizan por separado.
+Auditoría no destructiva iniciada el 2026-09-16 sobre `feat/document-review-history` y reconciliada después de integrar PR #8. La regeneración post-deploy se ejecuta desde `chore/ASTRA-DOC-002-post-deploy-plan`, cuya base `a0c9178d668305bc33bc8bacdad9f0ec529e4653` coincide con `main`, `origin/main` y staging sintético al iniciar el incremento. El inventario registra por separado el HEAD usado al generar sus salidas; el commit que incorpora esos archivos puede ser posterior. La documentación del sistema y el corpus externo se contabilizan por separado.
 
 ## Entregables
 
@@ -26,18 +26,18 @@ Ramas visibles: `main`, ramas ASTRA-001/002/003/005/006, `feat/document-review-h
 | Métrica | Cantidad | Interpretación |
 |---|---:|---|
 | Archivos versionados del checkout base | 110 | Universo Git antes de esta auditoría |
-| Artefactos documentales inventariados | 95 | Incluye registros por incremento; excluye los tres índices autogenerados |
-| Documentos narrativos | 75 | Markdown existente y producido durante la consolidación |
+| Artefactos documentales inventariados | 97 | Incluye registros por incremento y el plan ASTRA-010; excluye los tres índices autogenerados |
+| Documentos narrativos | 77 | Markdown existente y producido durante la consolidación |
 | Canónicos propuestos | 33 | Contratos, índices, políticas, referencias, runbooks y matrices actuales |
 | Vigentes | 70 | Incluye la base documental, configuración, migraciones e índice de releases |
-| Parcialmente vigentes | 9 | Planes/diseños con partes ejecutadas o aún abiertas |
-| Históricos | 16 | Cuatro tareas archivadas y doce registros de evidencia por incremento |
+| Parcialmente vigentes | 10 | Planes/diseños con partes ejecutadas o aún abiertas, incluido ASTRA-010 |
+| Históricos | 17 | Cuatro tareas archivadas y trece registros de evidencia por incremento |
 | Obsoletos como documento completo | 0 | Hay secciones obsoletas, detalladas por conflicto |
 | Duplicados exactos | 0 | Por SHA-256 del contenido actual |
-| Pares candidatos por solapamiento | 33 | Excluye releases históricos deliberadamente relacionados; los restantes requieren revisión humana |
-| Sin versión explícita | 93 | El SHA Git actúa como versión efectiva sólo para los ya versionados |
-| Sin autor Git identificable | 44 | Son artefactos nuevos, aún no versionados |
-| Sin propietario explícito | 95 | No existe `CODEOWNERS`; el front matter de releases no sustituye ownership global |
+| Pares candidatos por solapamiento | 28 | Excluye releases históricos deliberadamente relacionados; los restantes requieren revisión humana |
+| Sin versión explícita | 95 | El SHA Git actúa como versión efectiva sólo para los ya versionados |
+| Sin autor Git identificable | 2 | Son los dos documentos nuevos de ASTRA-DOC-002 antes del commit |
+| Sin propietario explícito | 97 | No existe `CODEOWNERS`; el front matter de releases no sustituye ownership global |
 
 `withoutClearOwner` mide responsabilidad documental, no autoría Git. `withoutGitAuthor` conserva por separado la ausencia de metadatos Git para los informes nuevos.
 
@@ -66,16 +66,16 @@ La auditoría inicial fue no destructiva. La consolidación posterior ejecutó l
 node tools/documentation-audit.mjs
 ```
 
-## Revisión final del árbol de trabajo
+## Revisión del incremento integrado
 
-El trabajo se separó en dos grupos: ASTRA-DOC-001 quedó en `7cb84e8` y la consolidación documental se prepara como commit independiente.
+El trabajo se separó en dos grupos y ambos fueron integrados por PR #8 en `a0c9178`: ASTRA-DOC-001 quedó en `7cb84e8` y la consolidación documental en `425c7f2`.
 
 ### Grupo funcional ASTRA-DOC-001
 
 - `apps/api/src/openapi.ts`
 - `apps/api/test/openapi-parity.test.ts`
 
-Evidencia: prueba dirigida posterior al commit 2/2; verificación integrada previa sobre árbol funcional equivalente 54/54, migraciones existentes, typecheck y build API/web. No está desplegado.
+Evidencia: prueba dirigida posterior al commit 2/2 y verificación limpia del merge `a0c9178` con 54/54, migraciones, typecheck y build API/web. Está incluido en staging `a0c9178`.
 
 ### Grupo de consolidación documental
 
@@ -87,4 +87,4 @@ Evidencia: prueba dirigida posterior al commit 2/2; verificación integrada prev
 
 Evidencia: 35/35 bloques extraídos con hash válido, enlaces Markdown locales PASS, cero artefactos sin clasificar y `git diff --check` PASS. La revisión visual fue omitida por decisión del usuario y no es necesaria para validar esta reorganización.
 
-Orden aplicado: primero el cambio funcional con su prueba; después la consolidación documental completa. Los movimientos y sus enlaces permanecen juntos. Push, PR, merge y despliegue son acciones separadas.
+Orden aplicado: primero el cambio funcional con su prueba; después la consolidación documental completa. Los movimientos y sus enlaces permanecieron juntos. Push, PR, merge y staging sintético se completaron; producción no fue desplegada.
