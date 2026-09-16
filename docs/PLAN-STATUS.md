@@ -1,4 +1,4 @@
-# Estado de las 84 tareas propuestas — 2026-09-15
+# Estado de las 84 tareas propuestas — 2026-09-16
 
 Contraste con esquema, módulos API/web, pruebas y documentación de main. Resuelta significa alcance comprobado; parcial no cierra todos los criterios. No equivale a Issues publicadas. P009 conserva evidencia manual histórica pero automatización pendiente; no exige repetir recorridos manuales.
 
@@ -10,7 +10,7 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 | P004 | Preservar PN conocido ante actualización incompleta | RESUELTA | Código y pruebas de regresión documentales aprobados |
 | P005 | Validar colisiones e identidad dentro del lote | PARCIAL | códigos repetidos bloqueados; identidad/fingerprint pendientes |
 | P006 | Representar cobertura OCR desconocida correctamente | RESUELTA | Código y pruebas de regresión documentales aprobados |
-| P007 | Verificar paridad del contrato API público | PARCIAL | contrato documental añadido; paridad OpenAPI general pendiente |
+| P007 | Verificar paridad del contrato API público | RESUELTA | 35 operaciones cubiertas; paridad método+ruta y referencias locales integrada en `a0c9178` |
 | P008 | Añadir pruebas del transporte frontend | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P009 | Automatizar el circuito preventivo de tres roles | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P010 | Descartar respuestas de sesiones anteriores | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
@@ -42,7 +42,7 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 | P036 | Reconciliar modelos de inteligencia entre checkouts | PARCIAL | comparación mínima documentada ADR-002; mapeo global pendiente |
 | P037 | Persistir fuentes y revisiones accesibles por ID | PARCIAL | revisiones/candidatos persistidos; biblioteca completa pendiente |
 | P038 | Persistir decisiones técnicas con evidencia y versión | PARCIAL | historial/versiones/API implementados; política técnica ampliada pendiente |
-| P039 | Asegurar y fijar el entorno del lector local | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
+| P039 | Asegurar y fijar el entorno del lector local | PENDIENTE | Plan ejecutable ASTRA-010 definido; contrato, resolver y pruebas aún no implementados |
 | P040 | Ejecutar OCR acotado conservando revisión y cobertura | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P041 | Aplicar lote de catálogo revisado transaccionalmente | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P042 | Administrar proveedores reutilizando modelo acordado | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
@@ -56,7 +56,7 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 | P050 | Registrar ejecución y costo de servicio externo | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P051 | Pilotar consultas por recurso en Inventario | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P052 | Separar detalle de OT y mostrar requisitos | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
-| P053 | Conectar biblioteca y revisión documental persistente | PARCIAL | UI conectada y browser dirigido aprobado; acceso al original pendiente |
+| P053 | Conectar biblioteca y revisión documental persistente | PARCIAL | UI/revisiones integradas y desplegadas en `a0c9178`; acceso seguro al original planificado en ASTRA-010 |
 | P054 | Mostrar dry-run real separado de decisión técnica | PARCIAL | comparador real visible y browser aprobado; invalidación externa de fuente pendiente |
 | P055 | Operar faltantes y requisiciones desde UI | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P056 | Registrar recepción parcial de OC desde UI | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
@@ -91,4 +91,4 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 
 Superficies contrastadas: schema.prisma; apps/api/src (app.ts, auth.ts, candidate-import.ts, config.ts, db.ts, document-intelligence.ts, document-review.ts, documents.ts, errors.ts, index.ts, maintenance.ts, openapi.ts, seed.ts); apps/web/src; pruebas de aceptación/documentales; scripts de operaciones. Priorización: paginación/revisión visual dirigida del módulo, fuente original segura, revisión acotada del lote y aplicación transaccional sin stock. Planes y recursos avanzan por incrementos propios.
 
-Incremento de historial (rama feat/document-review-history): P053 amplía consulta persistente con historial paginado y nombre actual del responsable; P007 conserva pendiente OpenAPI. Prueba concurrente de decisiones aprobada (200/409, sin doble revisión). 44 pruebas, typecheck y build aprobados; navegador/despliegue de este incremento pendientes. Los estados globales de tareas permanecen parciales.
+Reconciliación 2026-09-16: P007 queda resuelta por ASTRA-DOC-001 y su integración/despliegue en `a0c9178`. P039 y P053 se expanden mediante [ASTRA-010](05-planning/ASTRA-010-secure-source-reader.md): contrato/resolver, endpoint, UI y staging sintético por gates separados. No se considera implementado por existir el plan.

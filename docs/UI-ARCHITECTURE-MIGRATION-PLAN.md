@@ -1,7 +1,7 @@
 # Arquitectura UI y plan de migración progresiva
 
 Estado revisado: plan parcialmente implementado; primer vertical slice integrado en la base local `c8e2efb`, fases posteriores pendientes.
-Fecha de análisis: 2026-09-16  
+Fecha de análisis: 2026-09-16
 Checkout originalmente analizado: `feat/document-review-history` @ `35e06ed2b8045b73d278af3a5d4118faa1216bad`.
 Base local de continuidad documental: `c8e2efb3854caeca92e09a6a46912827775234b9`. La arquitectura vigente extraída se resume en `03-interfaces/frontend-architecture.md`.
 

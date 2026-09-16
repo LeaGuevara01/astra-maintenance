@@ -1,6 +1,6 @@
 # Arquitectura frontend
 
-Estado: implementación React/Vite vigente en la base `c8e2efb`. La UI es una SPA servida en el mismo origen que `/api`; no contiene reglas de negocio autoritativas.
+Estado: implementación React/Vite vigente e integrada en `a0c9178`. La UI es una SPA servida en el mismo origen que `/api`; no contiene reglas de negocio autoritativas.
 
 ## Composición
 

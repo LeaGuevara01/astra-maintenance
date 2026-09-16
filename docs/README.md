@@ -12,6 +12,8 @@ Este índice identifica qué documento responde cada pregunta y evita usar check
 6. [Verificación](VERIFICATION.md): estado verificable y checks pendientes; el detalle por fecha/SHA está en [registros de evidencia](07-evidence/releases/README.md).
 7. [Próximo trabajo](NEXT-TASK.md): siguiente incremento, sin mezclar tareas ya cerradas.
 
+Plan ejecutable vigente: [ASTRA-010 — lector seguro de fuentes](05-planning/ASTRA-010-secure-source-reader.md).
+
 Referencias estructurales: [modelo de dominio](01-architecture/domain-model.md), [estados](01-architecture/state-machines.md), [invariantes](01-architecture/invariants.md) y [matriz de permisos](08-reference/permissions-matrix.md).
 
 Implementación: [arquitectura backend](03-interfaces/backend-architecture.md), [arquitectura frontend](03-interfaces/frontend-architecture.md), [variables de entorno](08-reference/environment-variables.md) y [paridad OpenAPI](08-reference/openapi-parity.md).

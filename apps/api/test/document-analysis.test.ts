@@ -98,4 +98,3 @@ describe('document analysis dry-run', () => {
     expect(new Set(result.findings.map(finding => finding.code)).size).toBe(5);
   });
 });
-
