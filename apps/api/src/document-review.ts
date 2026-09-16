@@ -103,6 +103,9 @@ export function documentReviewRouter(db: PrismaClient) {
       kind: z.string().trim().max(80).optional(),
       sourceId: z.string().trim().max(120).optional(),
       confidence: z.string().trim().max(30).optional(),
+      category: z.string().trim().max(80).optional(),
+      relevance: z.string().trim().max(30).optional(),
+      provenanceKind: z.string().trim().max(80).optional(),
     }).strict().parse(req.query);
     const anchor = query.cursor ? await db.documentFinding.findUnique({ where: { id: query.cursor }, select: { id: true, createdAt: true } }) : null;
     assert(!query.cursor || anchor, 400, 'INVALID_CURSOR', 'El cursor no corresponde a un hallazgo.');
@@ -110,6 +113,9 @@ export function documentReviewRouter(db: PrismaClient) {
       ...(query.decision ? { reviewStatus: query.decision } : {}),
       ...(query.kind ? { kind: query.kind } : {}),
       ...(query.confidence ? { confidence: query.confidence } : {}),
+      ...(query.category ? { evidence: { path: ['category'], equals: query.category } } : {}),
+      ...(query.relevance ? { evidence: { path: ['relevance'], equals: query.relevance } } : {}),
+      ...(query.provenanceKind ? { evidence: { path: ['provenanceKind'], equals: query.provenanceKind } } : {}),
       ...(query.sourceId ? { run: { revision: { sourceId: query.sourceId } } } : {}),
       ...(anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { gt: anchor.id } }] } : {}),
     };
@@ -121,6 +127,22 @@ export function documentReviewRouter(db: PrismaClient) {
     });
     const items = rows.slice(0, query.limit);
     res.json({ items, nextCursor: rows.length > query.limit ? items[items.length - 1].id : null });
+  });
+  router.post('/findings/:id/candidate', roles('ADMIN'), async (req, res) => {
+    const input = z.object({ reason: z.string().trim().max(1000).optional() }).strict().parse(req.body ?? {});
+    const result = await idempotent(db, `document-finding-candidate:${req.actor.id}:${req.params.id}`, req.get('Idempotency-Key'), input, async tx => {
+      const finding = await tx.documentFinding.findUnique({ where: { id: String(req.params.id) }, include: { run: { include: { revision: true } } } });
+      assert(finding, 404, 'FINDING_NOT_FOUND', 'Hallazgo inexistente.');
+      assert(finding.kind === 'PART_CANDIDATE', 422, 'FINDING_NOT_PART', 'Sólo un hallazgo de repuesto puede derivarse a candidato de catálogo.');
+      assert(finding.code !== 'A_CONFIRMAR', 422, 'FINDING_CODE_UNCONFIRMED', 'El hallazgo no contiene un código derivable.');
+      const existing = await tx.documentCandidate.findFirst({ where: { revisionId: finding.run.revisionId, code: finding.code, locator: finding.locator }, include });
+      const candidate = existing ?? await tx.documentCandidate.create({ data: { revisionId: finding.run.revisionId, code: finding.code.slice(0, 100), name: finding.name.slice(0, 200), partNumber: finding.partNumber || 'A_CONFIRMAR', unit: finding.unit || 'u', locator: finding.locator.slice(0, 200), applicability: finding.applicability.slice(0, 500) }, include });
+      await tx.documentFindingReview.create({ data: { findingId: finding.id, decision: 'CREATE_CANDIDATE', reason: input.reason || 'Derivado a candidato con datos extraídos del hallazgo; requiere revisión humana antes de validar.', actorId: req.actor.id } });
+      await tx.documentFinding.update({ where: { id: finding.id }, data: { reviewStatus: 'CREATE_CANDIDATE' } });
+      await audit(tx, req.actor, 'DOCUMENT_FINDING_DERIVED', finding.id, { candidateId: candidate.id, revisionId: finding.run.revisionId, sourceId: finding.run.revision.sourceId, sha256: finding.run.revision.sha256, locator: finding.locator, stockEffect: 'NONE' });
+      return candidate;
+    });
+    res.status(201).json(result);
   });
   router.post('/findings/:id/reviews', roles('ADMIN', 'TECHNICIAN'), async (req, res) => {
     const input = z.object({ decision: z.enum(findingDecisions), reason: text(1000) }).strict().parse(req.body);

@@ -59,9 +59,11 @@ La cola no crea candidatos, no decide revisiones y no modifica stock. Sirve para
 
 ## Hallazgos documentales asistidos
 
-GET /document-candidates/findings/page?limit=25&cursor=<findingId>&decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT&kind=<tipo>&sourceId=<fuente>&confidence=ALTA|MEDIA|BAJA: tres roles autenticados. Lista hallazgos persistidos por corridas de analizador, con revisión documental, hash, locator, evidencia, advertencias, estado humano y última revisión. limit entero 1-100; cursor opcional válido de DocumentFinding. Cursor inexistente: 400 INVALID_CURSOR.
+GET /document-candidates/findings/page?limit=25&cursor=<findingId>&decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT&kind=<tipo>&sourceId=<fuente>&confidence=ALTA|MEDIA|BAJA&category=<categoria>&relevance=ALTA|MEDIA|BAJA&provenanceKind=<procedencia>: tres roles autenticados. Lista hallazgos persistidos por corridas de analizador, con revisión documental, hash, locator, evidencia, advertencias, estado humano y última revisión. Los filtros de categoría, relevancia y procedencia consultan los atributos conservadores almacenados en evidence. limit entero 1-100; cursor opcional válido de DocumentFinding. Cursor inexistente: 400 INVALID_CURSOR.
 
 POST /document-candidates/findings/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT, reason obligatorio. Registra decisión append-only, actualiza el estado visible del hallazgo y audita DOCUMENT_FINDING_REVIEWED. No crea candidato, no aplica catálogo y no modifica stock; CREATE_CANDIDATE sólo marca intención de derivación posterior.
+
+POST /document-candidates/findings/:id/candidate (ADMIN, Idempotency-Key): deriva únicamente un hallazgo PART_CANDIDATE con código extraído a DocumentCandidate, reutilizando revisión/fuente, código, descripción, PN, unidad, locator y aplicabilidad para evitar recarga manual. Registra una revisión CREATE_CANDIDATE y auditoría DOCUMENT_FINDING_DERIVED. La operación es idempotente, no valida el PN, no aplica catálogo y no modifica stock. EQUIPMENT_REFERENCE y OCR_REQUIRED devuelven 422 FINDING_NOT_PART.
 
 El comando npm run documents:analyze-sample conserva dry-run por defecto. Con -- --persist escribe corridas y hallazgos sólo para DocumentRevision ya cargadas, usando analyzerId/analyzerVersion. Si esa versión de analizador ya tiene hallazgos, bloquea la reescritura para preservar revisiones humanas.
 

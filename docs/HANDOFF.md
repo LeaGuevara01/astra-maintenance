@@ -46,6 +46,12 @@ UI /documents ahora suma “Hallazgos asistidos por IA” debajo de la cola de f
 
 El comando npm run documents:analyze-sample sigue siendo dry-run por defecto y agrega -- --persist para guardar corridas/hallazgos contra revisiones ya cargadas. Bloquea la reescritura de una misma analyzerVersion si ya existen hallazgos, para no destruir revisión humana. No se cargó texto completo ni binarios en la base.
 
+## Incremento: procedencia y derivación asistida — 2026-09-16
+
+El analizador agrega a cada evidencia una categoría inicial, relevancia, tipo de procedencia y título de fuente. Son ayudas de muestreo y priorización, no confirmaciones OEM. La cola de hallazgos permite filtrarlas y las muestra junto con aplicabilidad, locator y hash.
+
+ADMIN puede derivar un PART_CANDIDATE con una sola acción. El backend copia los campos extraídos a DocumentCandidate, conserva `A_CONFIRMAR` cuando el PN no fue validado, registra revisión/auditoría e impide derivar referencias de equipo u OCR. El flujo no aplica catálogo ni genera movimientos de stock.
+
 Verificación: scripts/Verify.ps1 -SkipInstall aplicó la migración en astra_test, ejecutó db:generate, typecheck API/web, 49 tests y build API/web correctamente. Durante test se reasignó el puerto de base test de 50387 a 50388 por ocupación local.
 
 ## Ajuste: referencias de equipo/manual — 2026-09-16

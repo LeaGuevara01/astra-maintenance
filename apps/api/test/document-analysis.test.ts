@@ -23,6 +23,7 @@ describe('document analysis dry-run', () => {
       applicability: 'John Deere',
     });
     expect(result.findings[0].evidence.sha256).toBe('a'.repeat(64));
+    expect(result.findings[0].evidence).toMatchObject({ category: 'FILTRO', relevance: 'MEDIA', provenanceKind: 'TECHNICAL_REFERENCE', sourceTitle: 'JOHN DEERE 6615 FILTRO.pdf' });
     expect(result.findings[0].warnings).toContain('REVISION_HUMANA_REQUERIDA');
   });
 
@@ -44,7 +45,7 @@ describe('document analysis dry-run', () => {
       stockEffect: 'NONE',
     });
     expect(result.findings.find(finding => finding.code === 'EA-350')?.warnings).toContain('REFERENCIA_EQUIPO_MANUAL');
-    expect(result.findings.find(finding => finding.code === 'EX-18070C')).toMatchObject({ kind: 'PART_CANDIDATE' });
+    expect(result.findings.find(finding => finding.code === 'EX-18070C')).toMatchObject({ kind: 'PART_CANDIDATE', evidence: { category: 'ESTRUCTURA_TRANSMISION', relevance: 'ALTA', provenanceKind: 'TABLA_REPUESTOS' } });
   });
   it('keeps OCR-only work as a blocking finding before candidate derivation', () => {
     const result = analyzeDocumentSource({

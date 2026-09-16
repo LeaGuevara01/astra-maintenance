@@ -18,7 +18,7 @@ export type DocumentFinding = {
   confidence: FindingConfidence;
   reviewStatus: 'A_CONFIRMAR';
   stockEffect: 'NONE';
-  evidence: { sourceId: string; sha256: string; textLocator: string; snippet: string };
+  evidence: { sourceId: string; sha256: string; textLocator: string; snippet: string; category?: string; relevance?: string; provenanceKind?: string; sourceTitle?: string };
   warnings: string[];
 };
 
@@ -61,11 +61,9 @@ function familyOf(source: SourceRecord, text: string) {
   if (byTitle) return byTitle;
   return familyRules.find(([, pattern]) => pattern.test(text.slice(0, 800)))?.[0] ?? 'A clasificar';
 }
-
 function cleanText(value: string) {
   return value.replace(/\s+/g, ' ').trim();
 }
-
 function snippetAround(text: string, index: number, size = 160) {
   const start = Math.max(0, index - size);
   const end = Math.min(text.length, index + size);
@@ -106,6 +104,34 @@ function confidenceFor(source: SourceRecord, snippet: string, kind: FindingKind)
   return 'BAJA';
 }
 
+function partCategory(snippet: string, kind: FindingKind) {
+  const lower = snippet.toLocaleLowerCase('es-AR');
+  if (kind === 'EQUIPMENT_REFERENCE') return 'EQUIPO_MANUAL';
+  if (lower.includes('filtro')) return 'FILTRO';
+  if (lower.includes('retén') || lower.includes('reten')) return 'RETEN';
+  if (lower.includes('rodamiento') || lower.includes('bearing')) return 'RODAMIENTO';
+  if (lower.includes('correa')) return 'CORREA';
+  if (lower.includes('aceite') || lower.includes('lubric')) return 'LUBRICANTE';
+  if (lower.includes('bujía') || lower.includes('bujia') || lower.includes('cable') || lower.includes('eléctr')) return 'ELECTRICO';
+  if (lower.includes('guard') || lower.includes('shaft') || lower.includes('eje') || lower.includes('pin')) return 'ESTRUCTURA_TRANSMISION';
+  return 'IDENTIFICADOR_TECNICO';
+}
+
+function relevanceFor(snippet: string, kind: FindingKind, confidence: FindingConfidence) {
+  if (kind === 'OCR_REQUIRED') return 'ALTA';
+  if (kind === 'EQUIPMENT_REFERENCE') return confidence === 'MEDIA' ? 'MEDIA' : 'BAJA';
+  if (/\b(?:qty|cantidad|cant\.|description|c[oó]digo|code|part|repuesto|pieza|n[º°]|nro\.?|item)\b/i.test(snippet)) return 'ALTA';
+  if (confidence === 'MEDIA') return 'MEDIA';
+  return 'BAJA';
+}
+
+function provenanceKind(source: SourceRecord, snippet: string, kind: FindingKind) {
+  const context = `${source.name ?? ''} ${source.path} ${snippet}`;
+  if (kind === 'EQUIPMENT_REFERENCE') return /repuesto|parts|spare/i.test(context) ? 'MANUAL_REPUESTOS_EQUIPO' : 'MANUAL_INSTRUCCIONES_EQUIPO';
+  if (/\b(?:qty|cantidad|description|diagram|item|n[º°])\b/i.test(snippet)) return 'TABLA_REPUESTOS';
+  if (/ficha[_\s-]*t[eé]cnica|technical/i.test(context)) return 'FICHA_TECNICA';
+  return source.kind ?? 'A_CONFIRMAR';
+}
 function sourceWarnings(source: SourceRecord) {
   return [
     ...(source.pagesNeedingOCR?.length ? ['OCR_PARCIAL_PENDIENTE'] : []),
@@ -129,6 +155,8 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     const snippet = snippetAround(text, index);
     const locator = locatorFor(text, index);
     const kind = findingKindFor(source, snippet, code);
+    const confidence = confidenceFor(source, snippet, kind);
+    const category = partCategory(snippet, kind);
     findings.push({
       id: `${sourceId}:${code}:${locator}`,
       sourceId,
@@ -140,10 +168,10 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
       unit: 'u',
       locator,
       applicability: familyOf(source, text),
-      confidence: confidenceFor(source, snippet, kind),
+      confidence,
       reviewStatus: 'A_CONFIRMAR',
       stockEffect: 'NONE',
-      evidence: { sourceId, sha256, textLocator: locator, snippet },
+      evidence: { sourceId, sha256, textLocator: locator, snippet, category, relevance: relevanceFor(snippet, kind, confidence), provenanceKind: provenanceKind(source, snippet, kind), sourceTitle: source.name ?? path.basename(source.path) },
       warnings: [...warnings, 'REVISION_HUMANA_REQUERIDA', ...(kind === 'EQUIPMENT_REFERENCE' ? ['REFERENCIA_EQUIPO_MANUAL'] : ['PN_NO_CONFIRMADO'])],
     });
     if (findings.length >= limit) break;
@@ -163,7 +191,7 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
       confidence: 'ALTA',
       reviewStatus: 'A_CONFIRMAR',
       stockEffect: 'NONE',
-      evidence: { sourceId, sha256, textLocator: source.pagesNeedingOCR.map(page => `page:${page}`).join(','), snippet: '' },
+      evidence: { sourceId, sha256, textLocator: source.pagesNeedingOCR.map(page => `page:${page}`).join(','), snippet: '', category: 'OCR', relevance: 'ALTA', provenanceKind: source.kind ?? 'A_CONFIRMAR', sourceTitle: source.name ?? path.basename(source.path) },
       warnings: [...warnings, 'OCR_REQUERIDO_ANTES_DE_CONFIRMAR'],
     });
   }
@@ -180,4 +208,5 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     warnings,
   };
 }
+
 

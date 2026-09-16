@@ -92,6 +92,12 @@ Resultado: PASS. Migración 20260916021000_document_analysis_findings aplicada e
 
 Cobertura agregada: cola GET /document-candidates/findings/page autenticada y paginada, cursor inválido, VIEWER bloqueado en POST, motivo obligatorio, dos revisiones append-only, filtro por estado humano, inmutabilidad de DocumentFindingReview, y conteos de DocumentCandidate/StockMovement en cero.
 
+## 2026-09-16 — procedencia y derivación asistida
+
+Ejecutado `scripts/Verify.ps1 -SkipInstall`. Resultado: PASS. Prisma generate y migrations OK; typecheck API/web OK; tests API 50/50 OK; build API/web OK. Puerto aislado de prueba reasignado 50391->50392 por ocupación local.
+
+Cobertura agregada: filtros JSON por categoría, relevancia y procedencia; clasificación conservadora del analizador; derivación restringida a ADMIN y PART_CANDIDATE; rechazo de OCR_REQUIRED; copia de fuente/hash/locator/aplicabilidad; idempotencia; una sola revisión CREATE_CANDIDATE y cero movimientos de stock.
+
 ## 2026-09-16 — referencias de equipo/manual
 
 Comandos: npm run typecheck --workspaces; npx vitest run apps/api/test/document-analysis.test.ts --maxWorkers=1.
