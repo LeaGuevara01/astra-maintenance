@@ -1,5 +1,7 @@
 # Plan intensivo de revisión automática documental
 
+Estado revisado: parcialmente implementado al 2026-09-16. Los incrementos 1 y 2 están implementados; el incremento 3 tiene un vertical slice operativo; los incrementos 4 y 5 continúan pendientes. La evidencia detallada está en [`07-evidence/releases/`](07-evidence/releases/README.md); HANDOFF y VERIFICATION funcionan como índices vigentes.
+
 Objetivo: acelerar la revisión del corpus técnico con analizadores automáticos y asistidos por IA, sin convertir OCR, similitud o texto extraído en verdad técnica. Toda salida automática nace como propuesta `A_CONFIRMAR`, con fuente, hash, locator y advertencias. Ningún analizador modifica stock, planes, órdenes ni catálogo.
 
 ## Principios
@@ -48,7 +50,7 @@ Este incremento no usa base de datos y no llama a proveedores externos. Sirve pa
 
 ## Incremento 2: hallazgos persistentes
 
-Agregar tablas, sin tocar candidatos todavía:
+Estado: implementado. Se agregaron las tablas:
 
 - `DocumentAnalysisRun`: fuente, motor, versión, fecha, resumen, actor o proceso.
 - `DocumentFinding`: tipo, código, nombre propuesto, PN `A_CONFIRMAR`, locator, snippet, confianza, advertencias.
@@ -60,9 +62,13 @@ Reglas:
 - Hallazgos recalculables por `sourceId + sha256 + analyzerVersion`.
 - Ninguna escritura en `Part`, `StockMovement`, `PlanTask` ni `WorkOrder`.
 
+La persistencia se identifica por revisión y `analyzerVersion`; si una versión ya tiene hallazgos se bloquea la reescritura para preservar revisiones humanas. La derivación posterior a `DocumentCandidate` se implementó como comando explícito, idempotente y separado; no modifica catálogo ni stock.
+
 ## Incremento 3: UI de revisión asistida
 
-Extender `/documents` con una pestaña de hallazgos:
+Estado: parcial. `/documents` ya incluye cola paginada de hallazgos, filtros, inspector de evidencia, decisiones con motivo y derivación explícita para ADMIN. Permanecen pendientes el resumen agregado por fuente, las métricas de calibración y la validación visual del gesto físico drag & drop en escritorio.
+
+Alcance planificado:
 
 - Resumen por fuente: familia, estado de extracción, OCR pendiente, cantidad de hallazgos.
 - Panel lado a lado: hallazgo, snippet, hash, locator, advertencias.
@@ -73,6 +79,8 @@ Extender `/documents` con una pestaña de hallazgos:
 La acción `Crear candidato` debe prellenar el formulario persistente existente con `partNumber:A_CONFIRMAR`, unidad, locator y aplicabilidad. Debe requerir motivo.
 
 ## Incremento 4: IA enchufable
+
+Estado: pendiente. El analizador determinístico existe, pero todavía no implementa el puerto común ni proveedores LLM/visión.
 
 Agregar un puerto interno de analizador:
 
@@ -93,6 +101,8 @@ Motores previstos:
 Los prompts deben pedir JSON estricto, incluir límites de dominio y prohibir validación final. La respuesta se valida con Zod y se degrada a `A_CONFIRMAR` si falta evidencia.
 
 ## Incremento 5: calibración
+
+Estado: pendiente. El muestreo técnico disponible no constituye la revisión manual medida de 20–50 hallazgos definida aquí.
 
 Revisar manualmente 20-50 hallazgos y medir:
 

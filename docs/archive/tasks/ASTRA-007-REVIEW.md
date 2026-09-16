@@ -1,5 +1,9 @@
 # ASTRA-007 — Revisión humana priorizada del corpus
 
+> Estado: archivado el 2026-09-16. Origen: `docs/ASTRA-007-REVIEW.md`.
+> Evidencia histórica acotada; no valida equivalencias OEM ni representa una revisión integral del corpus.
+> Consultar [`../../02-domains/technical-information/corpus-policy.md`](../../02-domains/technical-information/corpus-policy.md) y [`../../07-evidence/verification-index.md`](../../07-evidence/verification-index.md).
+
 Fecha: 2026-09-11. Esta revisión no modifica originales ni datos de staging.
 
 ## Resultado ejecutivo

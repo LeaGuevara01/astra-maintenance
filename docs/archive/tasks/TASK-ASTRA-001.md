@@ -1,4 +1,9 @@
 # ASTRA-001: circuito preventivo
+
+> Estado: archivado el 2026-09-16. Origen: `docs/TASK-ASTRA-001.md`.
+> Este documento conserva el alcance histórico de ASTRA-001 y no define el estado actual.
+> Consultar [`../../PRODUCT.md`](../../PRODUCT.md), [`../../API-CONTRACT.md`](../../API-CONTRACT.md) y [`../../HANDOFF.md`](../../HANDOFF.md).
+
 Objetivo: convertir un plan por activo en una OT ejecutable, consumir stock sin duplicados, cerrar con seguridad y obtener tarjetas consistentes.
 Alcance: P01-P10 de PRODUCT.md, API-CONTRACT.md, infraestructura local, cinco skills genéricas y una skill de fuentes técnica.
 Ownership: integrador raíz/scripts/docs/lock; backend apps/api+prisma; frontend apps/web.

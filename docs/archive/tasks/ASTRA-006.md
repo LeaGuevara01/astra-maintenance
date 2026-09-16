@@ -1,6 +1,8 @@
-> Estado vigente: revisión documental persistente implementada el 2026-09-15. Consultar docs/HANDOFF.md, docs/VERIFICATION.md y docs/PLAN-STATUS.md. Los checkpoints que siguen son históricos y no ordenan repetir trabajo.
-
 # ASTRA-006 — Inteligencia documental conservadora
+
+> Estado: archivado el 2026-09-16. Origen: `docs/ASTRA-006.md`.
+> Este documento conserva evidencia de un incremento anterior y no define el flujo vigente.
+> Consultar [`../../02-domains/technical-information/corpus-policy.md`](../../02-domains/technical-information/corpus-policy.md), [`../../03-interfaces/backend-architecture.md`](../../03-interfaces/backend-architecture.md) y [`../../HANDOFF.md`](../../HANDOFF.md).
 
 Implementación local sobre el inventario existente. No agrega tablas ni rutas de producción y no copia originales al repositorio.
 

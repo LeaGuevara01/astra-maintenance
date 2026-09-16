@@ -1,9 +1,9 @@
 # Arquitectura UI y plan de migración progresiva
 
-Estado: arquitectura aprobada para ejecución; primer vertical slice implementado en el árbol de trabajo, sin migración de base de datos  
+Estado revisado: plan parcialmente implementado; primer vertical slice integrado en la base local `c8e2efb`, fases posteriores pendientes.
 Fecha de análisis: 2026-09-16  
-Checkout analizado: `feat/document-review-history` @ `35e06ed2b8045b73d278af3a5d4118faa1216bad`  
-Referencia remota observada: `origin/main` @ `54beabe7f8d25f306c9ab38c781df3c972a033d8`
+Checkout originalmente analizado: `feat/document-review-history` @ `35e06ed2b8045b73d278af3a5d4118faa1216bad`.
+Base local de continuidad documental: `c8e2efb3854caeca92e09a6a46912827775234b9`. La arquitectura vigente extraída se resume en `03-interfaces/frontend-architecture.md`.
 
 ## 1. Hallazgos
 
@@ -468,6 +468,14 @@ La UI debe emitir consultas estructuradas (`kind`, campos, filtros, relaciones, 
 La IA puede buscar, ordenar, comparar y proponer. No escribe directo a Prisma, no valida equivalencias y no modifica stock, planes u OT sin comando humano autorizado.
 
 ## 12. Plan de implementación
+
+Estado al 2026-09-16:
+
+| Fases | Estado | Evidencia o pendiente |
+|---|---|---|
+| 0–3 | Implementadas en el primer slice | Inventario, `EntityViewModel`, primitivas y badges semánticos para hallazgos |
+| 4–6 | Parciales | Workbench/inspector, relación y alternativa click implementados; drag físico desktop no verificado |
+| 7–8 | Pendientes | Extensión a otros módulos, taxonomía persistida e integración IA |
 
 ### Fase 0 — inventario y contratos
 
