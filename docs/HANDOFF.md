@@ -35,3 +35,15 @@ Autorización y secuencia en AUTONOMOUS-DEVELOPMENT.md. Endpoint aditivo /docume
 Rama feat/document-review-history, base 54beabe (coincidente con origin/main al iniciar). API de historial paginado por versión y UI de 25 decisiones por página; selección/versionado reinicia la navegación y descarta respuestas del historial anterior. Nombre actual del revisor resuelto por ID; ausencias explícitas, sin exponer datos de cuenta. actorId e historial append-only conservados. Listado paginado de candidatos sólo incluye la última decisión; endpoint legado compatible. Sin migraciones ni cambios de stock.
 
 Prueba nueva: historial vacío, autenticación, lectura VIEWER, nombres/IDs, límites/cursor, candidato ausente, continuación frente a decisión concurrente, último estado y compatibilidad. Dos revisores concurrentes producen una sola decisión nueva y un 409 REVIEW_STALE.
+
+## Incremento: hallazgos asistidos persistentes — 2026-09-16
+
+Continuación del plan automático de revisión documental. Agregadas tablas DocumentAnalysisRun, DocumentFinding y DocumentFindingReview con migración 20260916021000_document_analysis_findings. Los hallazgos nacen A_CONFIRMAR, stockEffect NONE, enlazados a DocumentRevision por sourceId/sha256 existentes. Las revisiones humanas de hallazgos son append-only e inmutables por trigger; el estado visible del hallazgo permite filtrar A_CONFIRMAR, CREATE_CANDIDATE, REJECTED, OCR_REQUIRED y CONFLICT.
+
+API nueva: GET /document-candidates/findings/page para cola filtrable por decisión, tipo, fuente y confianza; POST /document-candidates/findings/:id/reviews para ADMIN/TECHNICIAN con motivo obligatorio e idempotencia. CREATE_CANDIDATE no crea candidato todavía: sólo deja marcada la intención para una derivación explícita posterior con locator, hash y aplicabilidad. VIEWER sólo consulta.
+
+UI /documents ahora suma “Hallazgos asistidos por IA” debajo de la cola de fuentes. Muestra código, PN A_CONFIRMAR, locator, aplicabilidad, hash de revisión, snippet y advertencias. ADMIN/TECHNICIAN pueden decidir con motivo. La pantalla conserva el aviso de sin aplicación al catálogo ni stock.
+
+El comando npm run documents:analyze-sample sigue siendo dry-run por defecto y agrega -- --persist para guardar corridas/hallazgos contra revisiones ya cargadas. Bloquea la reescritura de una misma analyzerVersion si ya existen hallazgos, para no destruir revisión humana. No se cargó texto completo ni binarios en la base.
+
+Verificación: scripts/Verify.ps1 -SkipInstall aplicó la migración en astra_test, ejecutó db:generate, typecheck API/web, 49 tests y build API/web correctamente. Durante test se reasignó el puerto de base test de 50387 a 50388 por ocupación local.

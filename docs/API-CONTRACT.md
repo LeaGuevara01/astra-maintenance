@@ -56,3 +56,11 @@ GET /document-candidates/page incluye únicamente la última decisión por candi
 GET /document-candidates/sources/page?limit=25&cursor=<revisionId>&extractionStatus=<estado>&family=<texto>&priority=ALTA|MEDIA|BAJA: tres roles autenticados. Lista revisiones documentales antes de derivar candidatos. limit entero 1–100; cursor opcional válido de DocumentRevision. Filtros opcionales por extractionStatus, familia/equipo inferido de título y prioridad operativa. Respuesta {items,nextCursor}; cada item incluye sourceId, title, sha256, kind, extractionStatus, pages, pagesNeedingOCR, reviewStatus, family, priority y hasCandidates.
 
 La cola no crea candidatos, no decide revisiones y no modifica stock. Sirve para seleccionar fuentes que luego podrán derivar candidatos con PN desconocido A_CONFIRMAR, locator de página/hoja, hash de revisión y aplicabilidad declarada.
+
+## Hallazgos documentales asistidos
+
+GET /document-candidates/findings/page?limit=25&cursor=<findingId>&decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT&kind=<tipo>&sourceId=<fuente>&confidence=ALTA|MEDIA|BAJA: tres roles autenticados. Lista hallazgos persistidos por corridas de analizador, con revisión documental, hash, locator, evidencia, advertencias, estado humano y última revisión. limit entero 1-100; cursor opcional válido de DocumentFinding. Cursor inexistente: 400 INVALID_CURSOR.
+
+POST /document-candidates/findings/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT, reason obligatorio. Registra decisión append-only, actualiza el estado visible del hallazgo y audita DOCUMENT_FINDING_REVIEWED. No crea candidato, no aplica catálogo y no modifica stock; CREATE_CANDIDATE sólo marca intención de derivación posterior.
+
+El comando npm run documents:analyze-sample conserva dry-run por defecto. Con -- --persist escribe corridas y hallazgos sólo para DocumentRevision ya cargadas, usando analyzerId/analyzerVersion. Si esa versión de analizador ya tiene hallazgos, bloquea la reescritura para preservar revisiones humanas.

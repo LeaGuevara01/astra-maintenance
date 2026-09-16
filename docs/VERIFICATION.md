@@ -84,3 +84,10 @@ Revisión visual dirigida en Edge sobre http://localhost:4380/documents: login A
 Implementación inicial sin proveedor externo: `document-analysis.ts` genera hallazgos revisables `A_CONFIRMAR` con `stockEffect:NONE`; `documents:analyze-sample` escribe resultados locales en `.runtime/document-analysis`. Ejecutado sobre `.runtime/sources/index.json` con 12 fuentes piloto: 85 hallazgos, 84 `PART_CANDIDATE` y 1 `OCR_REQUIRED`; familias cubiertas: John Deere, Case IH/Puma, Husqvarna/MZ, STIHL, Siembra/PLA/MXY, Toyota Hilux, Rodamientos/retenes y A clasificar. Salidas: `.runtime/document-analysis/analyses.json`, `findings.json`, `summary.json`.
 
 Verificación ejecutada: `npx vitest run apps/api/test/document-analysis.test.ts apps/api/test/document-intelligence.test.ts --maxWorkers=1` aprobó 12/12; `npm run typecheck --workspaces` aprobó; suite completa con PostgreSQL aislado `astra_test` aprobó 48/48 tras migraciones sin pendientes. No hubo escrituras en staging, stock ni candidatos.
+
+## 2026-09-16 — hallazgos asistidos persistentes
+
+Comando: scripts/Verify.ps1 -SkipInstall.
+Resultado: PASS. Migración 20260916021000_document_analysis_findings aplicada en astra_test. Prisma generate OK, typecheck API/web OK, tests API 49/49 OK, build API/web OK. Aviso operativo: puerto db test reasignado 50387->50388 por ocupación local.
+
+Cobertura agregada: cola GET /document-candidates/findings/page autenticada y paginada, cursor inválido, VIEWER bloqueado en POST, motivo obligatorio, dos revisiones append-only, filtro por estado humano, inmutabilidad de DocumentFindingReview, y conteos de DocumentCandidate/StockMovement en cero.

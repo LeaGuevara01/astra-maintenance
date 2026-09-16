@@ -10,6 +10,7 @@ const text = (max: number) => z.string().trim().min(1).max(max);
 const include = { revision: true, reviews: { orderBy: { version: 'desc' as const } } };
 const sourceStatuses = ['TEXT_EXTRACTED', 'OCR_REQUIRED', 'VISUAL_REVIEW_REQUIRED', 'DUPLICATE', 'A_CONFIRMAR'] as const;
 const sourcePriorities = ['ALTA', 'MEDIA', 'BAJA'] as const;
+const findingDecisions = ['A_CONFIRMAR', 'CREATE_CANDIDATE', 'REJECTED', 'OCR_REQUIRED', 'CONFLICT'] as const;
 type SourceStatus = typeof sourceStatuses[number];
 type SourcePriority = typeof sourcePriorities[number];
 type SourceQueueMetadata = { kind?: string; extractionStatus?: string; pages?: number | null; pagesNeedingOCR?: number[]; reviewStatus?: string };
@@ -92,6 +93,45 @@ export function documentReviewRouter(db: PrismaClient) {
     const page = filtered.slice(0, query.limit + 1);
     const items = page.slice(0, query.limit);
     res.json({ items, nextCursor: page.length > query.limit ? items[items.length - 1].id : null });
+  });
+
+  router.get('/findings/page', async (req, res) => {
+    const query = z.object({
+      limit: z.coerce.number().int().min(1).max(100).default(25),
+      cursor: text(100).optional(),
+      decision: z.enum(findingDecisions).optional(),
+      kind: z.string().trim().max(80).optional(),
+      sourceId: z.string().trim().max(120).optional(),
+      confidence: z.string().trim().max(30).optional(),
+    }).strict().parse(req.query);
+    const anchor = query.cursor ? await db.documentFinding.findUnique({ where: { id: query.cursor }, select: { id: true, createdAt: true } }) : null;
+    assert(!query.cursor || anchor, 400, 'INVALID_CURSOR', 'El cursor no corresponde a un hallazgo.');
+    const where = {
+      ...(query.decision ? { reviewStatus: query.decision } : {}),
+      ...(query.kind ? { kind: query.kind } : {}),
+      ...(query.confidence ? { confidence: query.confidence } : {}),
+      ...(query.sourceId ? { run: { revision: { sourceId: query.sourceId } } } : {}),
+      ...(anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { gt: anchor.id } }] } : {}),
+    };
+    const rows = await db.documentFinding.findMany({
+      where,
+      include: { run: { include: { revision: true } }, reviews: { orderBy: { createdAt: 'desc' }, take: 1 } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: query.limit + 1,
+    });
+    const items = rows.slice(0, query.limit);
+    res.json({ items, nextCursor: rows.length > query.limit ? items[items.length - 1].id : null });
+  });
+  router.post('/findings/:id/reviews', roles('ADMIN', 'TECHNICIAN'), async (req, res) => {
+    const input = z.object({ decision: z.enum(findingDecisions), reason: text(1000) }).strict().parse(req.body);
+    res.json(await idempotent(db, `document-finding-review:${req.actor.id}:${req.params.id}`, req.get('Idempotency-Key'), input, async tx => {
+      const finding = await tx.documentFinding.findUnique({ where: { id: String(req.params.id) }, select: { id: true } });
+      assert(finding, 404, 'FINDING_NOT_FOUND', 'Hallazgo inexistente.');
+      const review = await tx.documentFindingReview.create({ data: { findingId: finding.id, decision: input.decision, reason: input.reason, actorId: req.actor.id } });
+      await tx.documentFinding.update({ where: { id: finding.id }, data: { reviewStatus: input.decision } });
+      await audit(tx, req.actor, 'DOCUMENT_FINDING_REVIEWED', finding.id, input);
+      return tx.documentFinding.findUniqueOrThrow({ where: { id: finding.id }, include: { run: { include: { revision: true } }, reviews: { orderBy: { createdAt: 'desc' }, take: 1 } } });
+    }));
   });
   router.get('/page', async (req, res) => {
     const query = z.object({ limit: z.coerce.number().int().min(1).max(100).default(25), cursor: text(100).optional() }).strict().parse(req.query);
