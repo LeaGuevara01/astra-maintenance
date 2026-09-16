@@ -1,5 +1,9 @@
 # Handoff vigente — 2026-09-15
 
+## Incremento: analizador documental dry-run
+
+Solicitud del usuario: documentar y empezar implementación de revisión automática con analizadores IA. Agregado plan en docs/DOCUMENT-AI-REVIEW-PLAN.md y primer módulo local sin proveedor externo: apps/api/src/document-analysis.ts. El comando npm run documents:analyze-sample lee .runtime/sources/index.json, analiza textos extraídos de una muestra y escribe analyses.json, findings.json y summary.json bajo .runtime/document-analysis. Los hallazgos nacen A_CONFIRMAR, stockEffect:NONE, con sourceId, sha256, locator, snippet y advertencias. No usa base de datos, no crea candidatos y no modifica stock.
+
 ## Incremento: cola de revisión por fuente
 
 Rama feat/document-review-history. Agregada cola de fuentes previa a candidatos en /documents: endpoint GET /document-candidates/sources/page y UI con filtros por extractionStatus, familia/equipo y prioridad. La cola lee DocumentRevision y metadatos de auditoría DOCUMENT_SOURCE_IMPORTED; no requiere migración, no crea candidatos, no decide revisiones y no modifica stock. La prioridad es operativa y conservadora: OCR_REQUIRED/VISUAL_REVIEW_REQUIRED y familias reconocidas suben revisión; duplicados o fuentes ya derivadas bajan prioridad.
