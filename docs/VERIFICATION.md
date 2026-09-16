@@ -72,3 +72,9 @@ Fuera de este repositorio se actualizaron cabeceras de planes/checkpoints de out
 Verify.ps1 -SkipInstall aprobado sobre el árbol de trabajo de feat/document-review-history (base 54beabe, dirty=true): 44/44 pruebas, typecheck API/web y build API/web. PostgreSQL aislado astra_test; cuatro migraciones existentes, ninguna pendiente. La prueba añadida cubre paginación por versión, nombres e identidad, autenticación, entradas inválidas, compatibilidad y dos revisores concurrentes (200/409, una sola decisión persistida). git diff --check aprobado.
 
 No se ejecutó navegador ni despliegue de este incremento. verification.json identifica el árbol sucio y no habilita despliegue: se requiere Verify sobre el commit limpio antes de desplegar. No se atribuye esta ejecución a un SHA limpio ni se altera el registro. Próximos checks: navegación dirigida de páginas/historial y despliegue sintético cuando corresponda.
+
+## Cola de revisión por fuente — 2026-09-15
+
+Commit funcional 2b6cd68943018c45ec73ac71ad5abe3807ca3e6f. Verify.ps1 -SkipInstall aprobado sobre commit limpio: Prisma generate, migración astra_test sin pendientes, typecheck API/web, 45 pruebas y build API/web. Deploy-Staging.ps1 -SkipVerify finalizó con backup previo .runtime/backups/staging/20260916-014526-173.dump, migración staging sin pendientes, health ready y /api/v1/version en 2b6cd68943018c45ec73ac71ad5abe3807ca3e6f.
+
+Revisión visual dirigida en Edge sobre http://localhost:4380/documents: login ADMIN existente, footer v0.1.0 · 2b6cd689, 695 DocumentRevision, 0 DocumentCandidate y 695 auditorías DOCUMENT_SOURCE_IMPORTED. La cola muestra fuentes reales, filtros por extractionStatus/familia/prioridad y detalle con SHA, páginas/OCR y "Sin derivar". Filtro probado: OCR_REQUIRED + John Deere + ALTA, con resultados John Deere y detalle de páginas OCR. Captura local: .runtime/visual-review/documents-source-queue-desktop.png. No se crearon candidatos ni movimientos de stock.

@@ -6,6 +6,8 @@ Rama feat/document-review-history. Agregada cola de fuentes previa a candidatos 
 
 La derivación posterior conserva el límite técnico: partNumber desconocido A_CONFIRMAR, locator de página/hoja, sha256 de revisión y aplicabilidad declarada. La familia se infiere del título para organizar revisión, no como validación OEM.
 
+Verificación y redeploy: commit funcional 2b6cd68943018c45ec73ac71ad5abe3807ca3e6f pasó Verify.ps1 -SkipInstall (45 pruebas, typecheck y build) y fue desplegado en staging con backup previo .runtime/backups/staging/20260916-014526-173.dump. Health ready y /api/v1/version coincidieron. Revisión visual dirigida en Edge aprobó /documents con cola real, filtros OCR_REQUIRED + John Deere + ALTA, footer 2b6cd689, candidatos 0 y comparación deshabilitada. Evidencia local: .runtime/visual-review/documents-source-queue-desktop.png.
+
 ## Carga autorizada del corpus técnico — 2026-09-15 Argentina
 
 Solicitud del usuario: poblar la base con documentos del corpus técnico. Cargadas 695 revisiones en DocumentRevision de staging local (runtime 54beabe7f8d25f306c9ab38c781df3c972a033d8; checkout 6d2c7c89f7cd218b2bd8fa2a83bea6b558edf39a). Selección: 706 referencias MANUAL_OR_CATALOG/TECHNICAL_REFERENCE, nueve repeticiones consolidadas y dos excluidas por hash cambiado: SRC-9a301d3bad6a y SRC-bdcea086b8e1. Hashes de originales verificados antes de cargar; originales conservados.
