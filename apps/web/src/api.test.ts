@@ -41,6 +41,18 @@ describe('API transport session isolation', () => {
     await expect(pending).rejects.toMatchObject({ code: 'STALE_SESSION', status: 0 });
   });
 
+  it('turns an expired authenticated request into a discarded session response', async () => {
+    const browser = new EventTarget();
+    vi.stubGlobal('window', browser);
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(jsonResponse({ error: { code: 'SESSION_EXPIRED', message: 'Sesión vencida.' } }, 401))));
+    const { api, setCsrf } = await import('./api');
+
+    setCsrf('session-a');
+    browser.addEventListener('astra:session-expired', () => setCsrf(''));
+
+    await expect(api('/dashboard')).rejects.toMatchObject({ code: 'STALE_SESSION', status: 0 });
+  });
+
   it('does not reuse an uncertain idempotency key across sessions', async () => {
     const seenKeys: string[] = [];
     vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {

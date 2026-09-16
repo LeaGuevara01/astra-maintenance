@@ -43,6 +43,7 @@ export async function api<T>(path: string, method = 'GET', body?: unknown, idemp
   ensureCurrentSession(requestSessionRevision);
   if (!response.ok) {
     if (response.status === 401 && path !== '/auth/login' && path !== '/auth/me') window.dispatchEvent(new Event('astra:session-expired'));
+    ensureCurrentSession(requestSessionRevision);
     // An explicit rejection can be corrected and submitted as a new operation.
     if (response.status >= 400 && response.status < 500) requestKeys.delete(signature);
     throw new ApiError(response.status, data.error?.code || 'API_ERROR', data.error?.message || 'No se pudo completar la operación.', data.error?.details);
