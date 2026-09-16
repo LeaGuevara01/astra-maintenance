@@ -47,3 +47,7 @@ UI /documents ahora suma “Hallazgos asistidos por IA” debajo de la cola de f
 El comando npm run documents:analyze-sample sigue siendo dry-run por defecto y agrega -- --persist para guardar corridas/hallazgos contra revisiones ya cargadas. Bloquea la reescritura de una misma analyzerVersion si ya existen hallazgos, para no destruir revisión humana. No se cargó texto completo ni binarios en la base.
 
 Verificación: scripts/Verify.ps1 -SkipInstall aplicó la migración en astra_test, ejecutó db:generate, typecheck API/web, 49 tests y build API/web correctamente. Durante test se reasignó el puerto de base test de 50387 a 50388 por ocupación local.
+
+## Ajuste: referencias de equipo/manual — 2026-09-16
+
+A pedido del usuario, los códigos de equipo o modelo dejan de tratarse como falsos positivos descartables. El analizador ahora puede emitir kind EQUIPMENT_REFERENCE cuando el código aparece en contexto de manual, instrucciones, modelo, catálogo de repuestos o equipo. Ejemplo protegido por test: EA-350 en un manual Richiger queda como referencia de equipo/manual, mientras EX-18070C en la tabla de repuestos sigue como PART_CANDIDATE. Ambos conservan A_CONFIRMAR y stockEffect NONE; ninguna referencia crea activos, candidatos ni stock automáticamente.

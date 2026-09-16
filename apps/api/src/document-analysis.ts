@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { SourceRecord } from './document-intelligence.js';
 
-export type FindingKind = 'PART_CANDIDATE' | 'MAINTENANCE_TOPIC' | 'OCR_REQUIRED' | 'VISUAL_REVIEW_REQUIRED';
+export type FindingKind = 'PART_CANDIDATE' | 'EQUIPMENT_REFERENCE' | 'MAINTENANCE_TOPIC' | 'OCR_REQUIRED' | 'VISUAL_REVIEW_REQUIRED';
 export type FindingConfidence = 'ALTA' | 'MEDIA' | 'BAJA';
 
 export type DocumentFinding = {
@@ -52,6 +52,8 @@ const familyRules = [
 const partLikePattern = /\b(?:[A-Z]{1,5}[-\s]?\d{3,8}[A-Z0-9-]*|\d{5,8}[A-Z]?)\b/g;
 const stopCodes = new Set(['2023', '2024', '2025', '2026']);
 const rejectedCodePrefixes = /^(?:ISO|SAE|DIN|IRAM|DEERE|JOHN|CASE|HILUX|TOYOTA)\d+/;
+const equipmentContextPattern = /\b(?:manual|operator|operador|instrucciones|usuario|owner|service|workshop|taller|cat[aá]logo|repuestos|partes|modelo|model|equipo|implemento|sembradora|tractor|cosechadora|mixer|farm\s*equipment)\b/i;
+const equipmentCodePattern = /^(?:EA|ZT|MZ|TS|MS|FS|FR|QSB|MX|MXY|PUMA|HILUX|AST|JD)[-\dA-Z]+$/i;
 
 function familyOf(source: SourceRecord, text: string) {
   const title = `${source.name ?? ''} ${source.path}`;
@@ -78,8 +80,17 @@ function locatorFor(text: string, index: number) {
   return `text-line:${line}`;
 }
 
-function contextName(snippet: string, code: string) {
+function findingKindFor(source: SourceRecord, snippet: string, code: string): FindingKind {
+  const title = `${source.name ?? ''} ${source.path}`;
+  const context = `${title} ${snippet}`;
+  if (equipmentCodePattern.test(code) && equipmentContextPattern.test(context)) return 'EQUIPMENT_REFERENCE';
+  if (/\b(?:manual|operator|operador|modelo|model)\b/i.test(snippet) && !/\b(?:qty|cantidad|cant\.|pieza|repuesto|filtro|ret[eé]n|rodamiento|correa|bearing|guard|shaft)\b/i.test(snippet)) return 'EQUIPMENT_REFERENCE';
+  return 'PART_CANDIDATE';
+}
+
+function contextName(snippet: string, code: string, kind: FindingKind) {
   const lower = snippet.toLocaleLowerCase('es-AR');
+  if (kind === 'EQUIPMENT_REFERENCE') return `Referencia a equipo o manual ${code}`;
   if (lower.includes('filtro')) return `Posible filtro asociado a ${code}`;
   if (lower.includes('reten') || lower.includes('retén')) return `Posible retén asociado a ${code}`;
   if (lower.includes('rodamiento')) return `Posible rodamiento asociado a ${code}`;
@@ -88,7 +99,8 @@ function contextName(snippet: string, code: string) {
   return `Posible identificador técnico ${code}`;
 }
 
-function confidenceFor(source: SourceRecord, snippet: string): FindingConfidence {
+function confidenceFor(source: SourceRecord, snippet: string, kind: FindingKind): FindingConfidence {
+  if (kind === 'EQUIPMENT_REFERENCE' && source.extractionStatus === 'TEXT_EXTRACTED') return 'MEDIA';
   if (source.extractionStatus === 'TEXT_EXTRACTED' && /\b(filtro|ret[eé]n|rodamiento|correa|pieza|repuesto)\b/i.test(snippet)) return 'MEDIA';
   if (source.extractionStatus === 'TEXT_EXTRACTED') return 'BAJA';
   return 'BAJA';
@@ -116,22 +128,23 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     const index = match.index ?? 0;
     const snippet = snippetAround(text, index);
     const locator = locatorFor(text, index);
+    const kind = findingKindFor(source, snippet, code);
     findings.push({
       id: `${sourceId}:${code}:${locator}`,
       sourceId,
-      kind: 'PART_CANDIDATE',
+      kind,
       title: source.name ?? path.basename(source.path),
       code,
-      name: contextName(snippet, code),
+      name: contextName(snippet, code, kind),
       partNumber: 'A_CONFIRMAR',
       unit: 'u',
       locator,
       applicability: familyOf(source, text),
-      confidence: confidenceFor(source, snippet),
+      confidence: confidenceFor(source, snippet, kind),
       reviewStatus: 'A_CONFIRMAR',
       stockEffect: 'NONE',
       evidence: { sourceId, sha256, textLocator: locator, snippet },
-      warnings: [...warnings, 'REVISION_HUMANA_REQUERIDA', 'PN_NO_CONFIRMADO'],
+      warnings: [...warnings, 'REVISION_HUMANA_REQUERIDA', ...(kind === 'EQUIPMENT_REFERENCE' ? ['REFERENCIA_EQUIPO_MANUAL'] : ['PN_NO_CONFIRMADO'])],
     });
     if (findings.length >= limit) break;
   }
@@ -167,3 +180,4 @@ export function analyzeDocumentSource(source: SourceRecord, text: string, limit 
     warnings,
   };
 }
+

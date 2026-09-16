@@ -91,3 +91,8 @@ Comando: scripts/Verify.ps1 -SkipInstall.
 Resultado: PASS. Migración 20260916021000_document_analysis_findings aplicada en astra_test. Prisma generate OK, typecheck API/web OK, tests API 49/49 OK, build API/web OK. Aviso operativo: puerto db test reasignado 50387->50388 por ocupación local.
 
 Cobertura agregada: cola GET /document-candidates/findings/page autenticada y paginada, cursor inválido, VIEWER bloqueado en POST, motivo obligatorio, dos revisiones append-only, filtro por estado humano, inmutabilidad de DocumentFindingReview, y conteos de DocumentCandidate/StockMovement en cero.
+
+## 2026-09-16 — referencias de equipo/manual
+
+Comandos: npm run typecheck --workspaces; npx vitest run apps/api/test/document-analysis.test.ts --maxWorkers=1.
+Resultado: PASS. Cobertura agregada: EA-350 se clasifica como EQUIPMENT_REFERENCE con advertencia REFERENCIA_EQUIPO_MANUAL; EX-18070C permanece PART_CANDIDATE en contexto de tabla de repuestos.

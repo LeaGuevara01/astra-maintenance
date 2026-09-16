@@ -64,3 +64,5 @@ GET /document-candidates/findings/page?limit=25&cursor=<findingId>&decision=A_CO
 POST /document-candidates/findings/:id/reviews (ADMIN/TECHNICIAN, Idempotency-Key): decision=A_CONFIRMAR|CREATE_CANDIDATE|REJECTED|OCR_REQUIRED|CONFLICT, reason obligatorio. Registra decisión append-only, actualiza el estado visible del hallazgo y audita DOCUMENT_FINDING_REVIEWED. No crea candidato, no aplica catálogo y no modifica stock; CREATE_CANDIDATE sólo marca intención de derivación posterior.
 
 El comando npm run documents:analyze-sample conserva dry-run por defecto. Con -- --persist escribe corridas y hallazgos sólo para DocumentRevision ya cargadas, usando analyzerId/analyzerVersion. Si esa versión de analizador ya tiene hallazgos, bloquea la reescritura para preservar revisiones humanas.
+
+Los hallazgos pueden incluir kind=EQUIPMENT_REFERENCE para códigos de equipo, modelo o manual detectados en manuales de instrucciones o manuales de repuestos. Estas referencias son útiles para agrupar biblioteca técnica, aplicabilidad y futuras pantallas de equipo/manual; no son candidatos directos a Part y conservan partNumber=A_CONFIRMAR y stockEffect:NONE.

@@ -26,6 +26,26 @@ describe('document analysis dry-run', () => {
     expect(result.findings[0].warnings).toContain('REVISION_HUMANA_REQUERIDA');
   });
 
+  it('keeps equipment and manual references as useful document findings', () => {
+    const result = analyzeDocumentSource({
+      id: 'SRC-RICHIGER',
+      path: 'C:/docs/MANUAL DE REPUESTOS RICHIGER EA350.pdf',
+      name: 'MANUAL DE REPUESTOS RICHIGER EA350.pdf',
+      sha256: 'd'.repeat(64),
+      kind: 'MANUAL_OR_CATALOG',
+      extractionStatus: 'TEXT_EXTRACTED',
+      pages: 40,
+      pagesNeedingOCR: [],
+    }, 'page:1 RICHIGER EA-350 operator manual and spare parts catalog. page:35 Cover guard EX-18070C qty 1.');
+    expect(result.findings.find(finding => finding.code === 'EA-350')).toMatchObject({
+      kind: 'EQUIPMENT_REFERENCE',
+      name: 'Referencia a equipo o manual EA-350',
+      partNumber: 'A_CONFIRMAR',
+      stockEffect: 'NONE',
+    });
+    expect(result.findings.find(finding => finding.code === 'EA-350')?.warnings).toContain('REFERENCIA_EQUIPO_MANUAL');
+    expect(result.findings.find(finding => finding.code === 'EX-18070C')).toMatchObject({ kind: 'PART_CANDIDATE' });
+  });
   it('keeps OCR-only work as a blocking finding before candidate derivation', () => {
     const result = analyzeDocumentSource({
       id: 'SRC-OCR',
@@ -55,3 +75,4 @@ describe('document analysis dry-run', () => {
     expect(new Set(result.findings.map(finding => finding.code)).size).toBe(5);
   });
 });
+
