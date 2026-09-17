@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-09-16T21:48:04.704Z",
-  "head": "a0c9178d668305bc33bc8bacdad9f0ec529e4653",
-  "branch": "chore/ASTRA-DOC-002-post-deploy-plan",
-  "versionedFiles": 156,
-  "discoveredWorkingTreeFiles": 158,
-  "inventoriedSystemArtifacts": 97,
-  "narrativeDocuments": 77,
+  "generatedAt": "2026-09-17T16:09:56.867Z",
+  "head": "abc77f63dd62daf2eafbd30f73948bec1865d221",
+  "branch": "chore/ASTRA-RF-000-reconciliation",
+  "versionedFiles": 161,
+  "discoveredWorkingTreeFiles": 165,
+  "inventoriedSystemArtifacts": 102,
+  "narrativeDocuments": 82,
   "canonical": 33,
-  "historical": 17,
-  "current": 70,
+  "historical": 18,
+  "current": 74,
   "partiallyCurrent": 10,
   "obsolete": 0,
   "exactDuplicates": 0,
   "unclassified": 0,
-  "withoutExplicitVersion": 95,
-  "withoutClearOwner": 97,
-  "withoutGitAuthor": 2,
-  "overlapCandidates": 28,
+  "withoutExplicitVersion": 100,
+  "withoutClearOwner": 102,
+  "withoutGitAuthor": 4,
+  "overlapCandidates": 27,
   "byDomain": {
     "architecture": 3,
     "backend": 1,
     "data": 7,
-    "development": 50,
+    "development": 54,
     "frontend": 2,
     "operations": 3,
     "overview": 5,
     "planning": 4,
     "product": 1,
-    "quality": 15,
+    "quality": 16,
     "technical-information": 6
   },
   "byModule": {
@@ -40,10 +40,10 @@
     "onboarding": 7,
     "persistence": 7,
     "preventive-maintenance": 1,
-    "repository": 41,
+    "repository": 45,
     "roadmap": 4,
     "ui": 1,
-    "verification": 15
+    "verification": 16
   },
   "byType": {
     "automation": 1,
@@ -55,17 +55,17 @@
     "governance": 7,
     "handoff": 1,
     "migration": 6,
-    "narrative-document": 31,
+    "narrative-document": 35,
     "operations": 3,
     "plan": 4,
     "product-contract": 1,
     "readme": 7,
     "schema": 1,
-    "verification-record": 15
+    "verification-record": 16
   },
   "byExtension": {
     ".json": 9,
-    ".md": 77,
+    ".md": 82,
     ".prisma": 1,
     ".sql": 6,
     ".toml": 2,
@@ -73,8 +73,8 @@
     ".yml": 1
   },
   "byStatus": {
-    "historico": 17,
+    "historico": 18,
     "parcialmente-vigente": 10,
-    "vigente": 70
+    "vigente": 74
   }
 }

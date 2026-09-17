@@ -70,3 +70,8 @@ El comando npm run documents:analyze-sample conserva dry-run por defecto. Con --
 Los hallazgos pueden incluir kind=EQUIPMENT_REFERENCE para códigos de equipo, modelo o manual detectados en manuales de instrucciones o manuales de repuestos. Estas referencias son útiles para agrupar biblioteca técnica, aplicabilidad y futuras pantallas de equipo/manual; no son candidatos directos a Part y conservan partNumber=A_CONFIRMAR y stockEffect:NONE.
 
 En hallazgos de repuesto, `evidence.snippet` contiene el renglón o ítem reconstruido usado para clasificar y `evidence.contextSnippet` puede conservar el fragmento vecino más amplio. Ambos son evidencia para revisión; la segmentación y categoría siguen siendo propuestas `A_CONFIRMAR`.
+
+
+## Estado de integración de extensiones
+
+El contrato de este archivo corresponde a la base integrada. ASTRA-010 y el trabajo local ASTRA-REF-001 se contrastan en la [matriz de reconciliación](05-planning/ASTRA-RF-000-contract-reconciliation.md). Las capacidades locales no se anuncian como disponibles en main antes de integrar implementación, contrato y evidencia.

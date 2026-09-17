@@ -1,6 +1,6 @@
 # Arquitectura frontend
 
-Estado: implementación React/Vite vigente e integrada en `a0c9178`. La UI es una SPA servida en el mismo origen que `/api`; no contiene reglas de negocio autoritativas.
+Estado: implementación React/Vite vigente en la base integrada `a68150e` (árbol funcional de `abc77f6`). La UI es una SPA servida en el mismo origen que `/api`; no contiene reglas de negocio autoritativas.
 
 ## Composición
 
@@ -70,7 +70,7 @@ El backend sigue siendo la autoridad. Ocultar un botón no constituye control de
 ## Límites y deuda
 
 - `App.tsx` concentra navegación, sesión, carga global y formularios.
-- No hay tests automatizados del transporte o componentes frontend.
-- No hay descarte general de respuestas tardías entre sesiones para todas las cargas.
+- Hay cinco tests de transporte en api.test.ts; faltan pruebas de componentes.
+- api.ts descarta respuestas y errores tardíos de otra sesión; App.tsx controla la carga más reciente. La descarga PDF de OrderDetail usa fetch directo y queda fuera de esa protección; pruebas de componentes y PDF tras cambio de sesión siguen pendientes.
 - Los tipos frontend se mantienen manualmente; no se generan desde OpenAPI.
 - La revisión desktop del gesto físico drag & drop sigue pendiente.
