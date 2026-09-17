@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-17T16:09:56.867Z",
-  "head": "abc77f63dd62daf2eafbd30f73948bec1865d221",
+  "generatedAt": "2026-09-17T23:45:38.828Z",
+  "head": "24cd26191e8fce197f0e43998eb212a94d243a93",
   "branch": "chore/ASTRA-RF-000-reconciliation",
-  "versionedFiles": 161,
+  "versionedFiles": 165,
   "discoveredWorkingTreeFiles": 165,
   "inventoriedSystemArtifacts": 102,
   "narrativeDocuments": 82,
@@ -15,7 +15,7 @@
   "unclassified": 0,
   "withoutExplicitVersion": 100,
   "withoutClearOwner": 102,
-  "withoutGitAuthor": 4,
+  "withoutGitAuthor": 0,
   "overlapCandidates": 27,
   "byDomain": {
     "architecture": 3,
