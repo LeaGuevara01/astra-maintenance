@@ -6,6 +6,7 @@ Para cobertura por función consultar [matriz de capacidades](capability-matrix.
 
 | Fecha | SHA/árbol | Alcance | Resultado | Staging |
 |---|---|---|---|---|
+| 2026-09-16 | `68ee631` | [Aislamiento frontend](releases/2026-09-16/10-frontend-session-isolation.md) | Verify histórico: 54 API + 5 web, migraciones, typecheck/build | No desplegado en ese incremento |
 | 2026-09-16 | `a0c9178` | [Integración PR #8 y staging](releases/2026-09-16/09-main-integration-and-staging.md) | Verify limpio: typecheck, 54/54, migraciones y build | Sí; health/version/footer coincidentes |
 | 2026-09-16 | `7cb84e8` | [ASTRA-DOC-001, paridad OpenAPI](releases/2026-09-16/07-openapi-parity.md) | 2/2 posterior al commit; integrado posteriormente en `a0c9178` | Incluido en `a0c9178` |
 | 2026-09-16 | `c8e2efb` | Release anterior observado | health/version coincidentes en su momento | Histórico; conservado para rollback |
@@ -19,7 +20,7 @@ Para cobertura por función consultar [matriz de capacidades](capability-matrix.
 
 - La revisión visual de paginaciones y drag desktop fue omitida por decisión del usuario; no es requisito para continuar documentación.
 - El backup previo al despliegue `a0c9178` no fue restaurado en un entorno aislado durante ese despliegue.
-- ASTRA-010 está planificado y todavía no aporta evidencia de implementación.
+- ASTRA-010 y REF-001 se reconcilian en RF-000; la implementación local QR no está integrada ni certificada por este índice.
 
 ## Criterios de lectura
 

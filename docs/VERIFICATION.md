@@ -4,12 +4,11 @@ Actualizado: 2026-09-16. Este archivo conserva el estado verificable actual y en
 
 ## Estado verificable actual
 
-- `main`/`origin/main` integrados: `a0c9178d668305bc33bc8bacdad9f0ec529e4653`.
-- `./scripts/Verify.ps1 -SkipInstall`: PASS sobre ese SHA limpio; cinco migraciones sin pendientes, typecheck API/web, 54/54 pruebas y build API/web.
-- OpenAPI: 32 paths y 35 operaciones; paridad método+ruta incluida en la suite.
-- Staging observado: health ready, API version y footer coinciden con `a0c9178`; entorno `staging`, versión `0.1.0`.
-- Backup previo creado y hasheado; no se ejecutó restore-check específico sobre ese dump.
-- Revisión visual de paginaciones y drag desktop: omitida por decisión del usuario, no ejecutada.
+- Main remoto: a68150ef566b718b490798dacf6228fbfc125b9d; árbol igual a `abc77f6`, sin atribuirle un nuevo Verify completo.
+- Última verificación funcional encontrada: 68ee6315f1e4ccaa2399bde6d83138663b5135cf; 54 API + 5 web, migraciones, typecheck y build según [registro](07-evidence/releases/2026-09-16/10-frontend-session-isolation.md).
+- Reconciliación actual: sólo documentación; checks en [tarea](05-planning/ASTRA-RF-000-reconciliation.md).
+- Staging a0c9178 es observación histórica. Runtime no consultado ni desplegado aquí.
+- OpenAPI integrado: 35 operaciones. La extensión QR local no forma parte de ese contrato.
 
 ## Índice de evidencia
 
@@ -17,8 +16,8 @@ Consultar [07-evidence/verification-index.md](07-evidence/verification-index.md)
 
 ## Pendientes de verificación
 
-- ASTRA-DOC-002 modifica documentación y whitespace únicamente; requiere auditoría, enlaces y `git diff --check`, no una repetición funcional completa.
-- ASTRA-010 aún es plan: sus checks se ejecutarán por incremento cuando exista implementación.
+- DOC-002 ya integrado; no repetir su ejecución.
+- ASTRA-010 conserva criterios; REF-001 tiene implementación local no integrada. Exigir snapshot y evidencia antes de certificarla.
 - Backup programado y acceso LAN/TLS solo si se decide habilitar operación persistente o LAN.
 
 ## Criterios de lectura

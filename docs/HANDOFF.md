@@ -4,11 +4,11 @@ El estado vigente está en [CURRENT-STATUS.md](CURRENT-STATUS.md) y el trabajo s
 
 ## Identidad de continuidad
 
-- `main` y `origin/main`: `a0c9178d668305bc33bc8bacdad9f0ec529e4653`, merge de PR #8.
-- Verificación limpia más reciente: `a0c9178`; typecheck, 54/54 pruebas, cinco migraciones sin pendientes y build API/web.
-- Staging sintético: `a0c9178`; health, version y footer coincidentes.
-- Rama siguiente: `chore/ASTRA-DOC-002-post-deploy-plan`, basada en `a0c9178`; sus cambios documentales no están desplegados.
-- Próximo desarrollo: [ASTRA-010 — lector seguro de fuentes](05-planning/ASTRA-010-secure-source-reader.md), iniciando por contrato/resolver con fixtures.
+- Main remoto reconciliado: a68150ef566b718b490798dacf6228fbfc125b9d; su árbol coincide con `abc77f6`.
+- Rama actual de reconciliación: chore/ASTRA-RF-000-reconciliation; SHA final en Git.
+- Verificación funcional histórica: 68ee631 (54 API + 5 web, typecheck/build y migraciones), [registro](07-evidence/releases/2026-09-16/10-frontend-session-isolation.md).
+- Staging histórico: a0c9178; runtime no consultado en esta tarea.
+- [ASTRA-RF-000](05-planning/ASTRA-RF-000-reconciliation.md): baseline y contratos; QR/familias pendientes de integración reproducible.
 
 ## Registros por incremento
 

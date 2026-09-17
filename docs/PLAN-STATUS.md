@@ -11,9 +11,9 @@ Contraste con esquema, módulos API/web, pruebas y documentación de main. Resue
 | P005 | Validar colisiones e identidad dentro del lote | PARCIAL | códigos repetidos bloqueados; identidad/fingerprint pendientes |
 | P006 | Representar cobertura OCR desconocida correctamente | RESUELTA | Código y pruebas de regresión documentales aprobados |
 | P007 | Verificar paridad del contrato API público | RESUELTA | 35 operaciones cubiertas; paridad método+ruta y referencias locales integrada en `a0c9178` |
-| P008 | Añadir pruebas del transporte frontend | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
+| P008 | Añadir pruebas del transporte frontend | PARCIAL | Cinco tests api.test.ts integrados por PR #11; cubren sesión e idempotencia. No certifican todo transporte ni componentes |
 | P009 | Automatizar el circuito preventivo de tres roles | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
-| P010 | Descartar respuestas de sesiones anteriores | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
+| P010 | Descartar respuestas de sesiones anteriores | PARCIAL | Transporte y carga global implementados en PR #11; evidencia 68ee631. PDF usa fetch directo; interacción de componentes y cobertura PDF pendientes |
 | P011 | Certificar esquema SQL efectivo y preflight de integridad | PARCIAL | upgrade probado; certificación SQL completa pendiente |
 | P012 | Modelar jerarquía mínima de activos y componentes | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |
 | P013 | Crear revisiones de planes sin editar historia | PENDIENTE | No se encontró implementación completa del alcance/criterios propuestos |

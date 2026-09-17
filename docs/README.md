@@ -56,3 +56,6 @@ Los manuales, catálogos, facturas y demás fuentes externas son evidencia técn
 - Checkout, SHA verificado y SHA desplegado se informan por separado.
 - Los originales del corpus, secretos y evidencia local permanecen fuera de Git bajo almacenamiento autorizado o `.runtime`.
 - Ningún documento histórico autoriza repetir una mutación, aplicar catálogo, modificar stock o desplegar producción.
+
+
+Reconciliación vigente: [ASTRA-RF-000](05-planning/ASTRA-RF-000-reconciliation.md) y [contratos](05-planning/ASTRA-RF-000-contract-reconciliation.md).
